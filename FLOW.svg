@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1780" viewBox="0 0 1240 1780" font-family="Courier New, ui-monospace, SFMono-Regular, Menlo, monospace">
+  <defs>
+    <style>
+      .bg      { fill: #ffffff; }
+      .frame   { fill: none; stroke: #e5e7eb; stroke-width: 1.5; }
+      .t-title { fill: #111827; font-size: 28px; font-weight: 700; }
+      .t-sub   { fill: #6b7280; font-size: 14px; }
+      .t-sech  { fill: #dc2626; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
+      .t-note  { fill: #b45309; font-size: 12.5px; }
+      .lane    { fill: #16a34a; font-size: 15px; font-weight: 700; letter-spacing: 3px; }
+      .box     { fill: #f9fafb; stroke: #d1d5db; stroke-width: 1; }
+      .box-line{ fill: none; stroke: #e5e7eb; stroke-width: 1; }
+      .b-txt   { fill: #1f2937; font-size: 13px; }
+      .b-sub   { fill: #4b5563; font-size: 13px; }
+      .b-green { fill: #16a34a; font-size: 13px; font-weight: 700; }
+      .arrow   { stroke: #dc2626; stroke-width: 1.6; fill: none; }
+      .arrow-g { stroke: #9ca3af; stroke-width: 1.6; fill: none; }
+      .arrow-green { stroke: #16a34a; stroke-width: 1.6; stroke-dasharray: 5 4; fill: none; }
+      .lbl     { fill: #6b7280; font-size: 12px; }
+      .key     { fill: #16a34a; font-size: 13px; }
+      .val     { fill: #374151; font-size: 13px; }
+      .foot    { fill: #9ca3af; font-size: 11.5px; }
+    </style>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <rect class="frame" x="8" y="8" width="1224" height="1764" rx="18"/>
+
+  <!-- HEADER -->
+  <text class="t-title" x="620" y="56" text-anchor="middle">SECURE SHARE — HOW IT WORKS</text>
+  <text class="t-sub" x="620" y="84" text-anchor="middle">Next.js · React 19 + Firebase Realtime DB · routes: /  and  /s/[id]</text>
+
+  <!-- ===== 1 · LOGIN ===== -->
+  <text class="t-sech" x="52" y="128">1 · LOGIN</text>
+  <line class="box-line" x1="52" y1="140" x2="1188" y2="140"/>
+  <rect class="box" x="90" y="150" width="280" height="44" rx="8"/>
+  <text class="b-txt" x="230" y="178" text-anchor="middle">Enter @username</text>
+  <line class="arrow" x1="372" y1="172" x2="468" y2="172" marker-end="url(#arr-red)"/>
+  <rect class="box" x="470" y="150" width="380" height="44" rx="8"/>
+  <text class="b-txt" x="660" y="178" text-anchor="middle">users/{name} → {registered, lastLogin}</text>
+  <line class="arrow" x1="852" y1="172" x2="948" y2="172" marker-end="url(#arr-red)"/>
+  <rect class="box" x="950" y="150" width="260" height="44" rx="8"/>
+  <text class="b-green" x="1080" y="178" text-anchor="middle">localStorage → UI unlocked</text>
+  <rect class="box" x="90" y="224" width="1060" height="40" rx="8"/>
+  <text class="t-note" x="620" y="251" text-anchor="middle">Logout &amp; Wipe Data → removes user + their messages; reassigns or deletes any group they created</text>
+
+  <!-- ===== 2 · EPHEMERAL PASTEBIN ===== -->
+  <text class="t-sech" x="52" y="296">2 · EPHEMERAL PASTEBIN</text>
+  <line class="box-line" x1="52" y1="308" x2="1188" y2="308"/>
+  <text class="lane" x="245" y="338" text-anchor="middle">SENDER</text>
+  <text class="lane" x="995" y="338" text-anchor="middle">RECEIVER</text>
+
+  <!-- sender -->
+  <rect class="box" x="75" y="360" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="245" y="382" text-anchor="middle">Type normal text or dictate 🎙️</text>
+  <text class="b-sub" x="245" y="401" text-anchor="middle">wrap code in '''lang''' blocks</text>
+  <line class="arrow" x1="245" y1="414" x2="245" y2="450" marker-end="url(#arr-red)"/>
+  <rect class="box" x="75" y="452" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="245" y="474" text-anchor="middle">🔒 Require Passcode? → set passcode</text>
+  <text class="b-sub" x="245" y="493" text-anchor="middle">encrypted matrix FX + masking on save</text>
+  <line class="arrow" x1="245" y1="506" x2="245" y2="542" marker-end="url(#arr-red)"/>
+  <rect class="box" x="75" y="544" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="245" y="566" text-anchor="middle">✈️ Generate Link → random 8-char id</text>
+  <text class="b-sub" x="245" y="585" text-anchor="middle">write → pastebin/{id} + createdAt</text>
+  <line class="arrow" x1="245" y1="598" x2="245" y2="634" marker-end="url(#arr-red)"/>
+  <rect class="box" x="75" y="636" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="245" y="658" text-anchor="middle">Copy share link  /s/{id}</text>
+  <text class="b-sub" x="245" y="677" text-anchor="middle">send it to your friend</text>
+
+  <!-- share link arrow -->
+  <line class="arrow-green" x1="417" y1="662" x2="823" y2="662" marker-end="url(#arr-green)"/>
+  <text class="lbl" x="620" y="654" text-anchor="middle">share the link 🔗</text>
+
+  <!-- receiver -->
+  <rect class="box" x="825" y="360" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="995" y="382" text-anchor="middle">Open the link  /s/{id}</text>
+  <text class="b-sub" x="995" y="401" text-anchor="middle">fetch secret from Firebase</text>
+  <line class="arrow" x1="995" y1="414" x2="995" y2="450" marker-end="url(#arr-red)"/>
+  <rect class="box" x="825" y="452" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="995" y="474" text-anchor="middle">Passcode set? → enter exact key</text>
+  <text class="b-sub" x="995" y="493" text-anchor="middle">no passcode → view instantly</text>
+  <line class="arrow" x1="995" y1="506" x2="995" y2="542" marker-end="url(#arr-red)"/>
+  <rect class="box" x="825" y="544" width="340" height="52" rx="8"/>
+  <text class="b-green" x="995" y="566" text-anchor="middle">Payload decrypted</text>
+  <text class="b-sub" x="995" y="585" text-anchor="middle">code blocks · ⚙️ compiler · 🔊 read</text>
+  <line class="arrow" x1="995" y1="598" x2="995" y2="634" marker-end="url(#arr-red)"/>
+  <rect class="box" x="825" y="636" width="340" height="52" rx="8"/>
+  <text class="b-txt" x="995" y="658" text-anchor="middle">🔥 BURN AFTER READING</text>
+  <text class="b-sub" x="995" y="677" text-anchor="middle">remove from Firebase → gone forever</text>
+
+  <!-- ===== 3 · GROUP WORKSPACES ===== -->
+  <text class="t-sech" x="52" y="806">3 · GROUP WORKSPACES</text>
+  <line class="box-line" x1="52" y1="818" x2="1188" y2="818"/>
+  <rect class="box" x="410" y="852" width="420" height="48" rx="8"/>
+  <text class="b-green" x="620" y="873" text-anchor="middle">CREATE → name + @friend list</text>
+  <text class="b-sub" x="620" y="892" text-anchor="middle">verifies every friend is registered</text>
+  <line class="arrow" x1="620" y1="902" x2="620" y2="944" marker-end="url(#arr-red)"/>
+  <rect class="box" x="410" y="946" width="420" height="48" rx="8"/>
+  <text class="b-green" x="620" y="967" text-anchor="middle">JOIN → enter the group name</text>
+  <text class="b-sub" x="620" y="986" text-anchor="middle">only creator + members are admitted</text>
+  <line class="arrow" x1="620" y1="996" x2="620" y2="1038" marker-end="url(#arr-red)"/>
+  <rect class="box" x="410" y="1040" width="420" height="48" rx="8"/>
+  <text class="b-txt" x="620" y="1061" text-anchor="middle">LIVE CHANNEL  #name</text>
+  <text class="b-sub" x="620" y="1080" text-anchor="middle">onValue() realtime listener on meta + messages</text>
+  <line class="arrow" x1="620" y1="1090" x2="620" y2="1132" marker-end="url(#arr-red)"/>
+  <rect class="box" x="410" y="1134" width="420" height="48" rx="8"/>
+  <text class="b-txt" x="620" y="1155" text-anchor="middle">Send message → push()</text>
+  <text class="b-sub" x="620" y="1174" text-anchor="middle">groups/{name}/messages/{key} {sender,text,ts}</text>
+  <line class="arrow" x1="620" y1="1184" x2="620" y2="1226" marker-end="url(#arr-red)"/>
+  <rect class="box" x="410" y="1228" width="420" height="48" rx="8"/>
+  <text class="b-txt" x="620" y="1249" text-anchor="middle">Everyone sees it instantly</text>
+  <text class="b-sub" x="620" y="1268" text-anchor="middle">code blocks render · 🔊 TTS · ✕ delete own</text>
+  <line class="arrow" x1="620" y1="1278" x2="620" y2="1320" marker-end="url(#arr-red)"/>
+  <rect class="box" x="410" y="1322" width="420" height="48" rx="8"/>
+  <text class="b-txt" x="620" y="1343" text-anchor="middle">LEAVE → creator hands off to 1st member</text>
+  <text class="b-sub" x="620" y="1362" text-anchor="middle">group with no members → deleted</text>
+
+  <!-- ===== 4 · EXTRAS ===== -->
+  <text class="t-sech" x="52" y="1404">4 · EXTRAS</text>
+  <line class="box-line" x1="52" y1="1416" x2="1188" y2="1416"/>
+  <rect class="box" x="90" y="1440" width="320" height="64" rx="8"/>
+  <text class="b-green" x="250" y="1468" text-anchor="middle">🎙️ Dictation Studio</text>
+  <text class="b-sub" x="250" y="1488" text-anchor="middle">speech-to-text → insert into text / chat</text>
+  <rect class="box" x="460" y="1440" width="320" height="64" rx="8"/>
+  <text class="b-green" x="620" y="1468" text-anchor="middle">⚙️ Compiler Studio</text>
+  <text class="b-sub" x="620" y="1488" text-anchor="middle">POST /api/compile → onlinecompiler.io</text>
+  <rect class="box" x="830" y="1440" width="320" height="64" rx="8"/>
+  <text class="b-green" x="990" y="1468" text-anchor="middle">📖 Explain Code</text>
+  <text class="b-sub" x="990" y="1488" text-anchor="middle">POST /api/explain → Groq LLM</text>
+  <text class="lbl" x="990" y="1518" text-anchor="middle">ADIB=BN · FABIHA=simple EN · MAHATAB=2-line · MAHIN=long</text>
+
+  <!-- ===== 5 · DATA MODEL ===== -->
+  <text class="t-sech" x="52" y="1556">5 · DATA MODEL (FIREBASE RTDB)</text>
+  <line class="box-line" x1="52" y1="1568" x2="1188" y2="1568"/>
+  <rect class="box" x="90" y="1584" width="1060" height="140" rx="8"/>
+  <line class="box-line" x1="560" y1="1596" x2="560" y2="1712"/>
+  <line class="box-line" x1="100" y1="1618" x2="1140" y2="1618"/>
+  <line class="box-line" x1="100" y1="1652" x2="1140" y2="1652"/>
+  <line class="box-line" x1="100" y1="1686" x2="1140" y2="1686"/>
+  <text class="key" x="110" y="1610">users/{username}</text>
+  <text class="val" x="580" y="1610">{ registered, lastLogin }</text>
+  <text class="key" x="110" y="1644">pastebin/{id}</text>
+  <text class="val" x="580" y="1644">{ text, passcode, createdAt }</text>
+  <text class="key" x="110" y="1678">groups/{name}/meta</text>
+  <text class="val" x="580" y="1678">{ creator, members[], createdAt }</text>
+  <text class="key" x="110" y="1712">groups/{name}/messages/{key}</text>
+  <text class="val" x="580" y="1712">{ sender, text, timestamp }</text>
+
+  <text class="foot" x="620" y="1752" text-anchor="middle">Secure Share · flow diagram generated from this codebase</text>
+</svg>

@@ -1,76 +1,124 @@
 @import "tailwindcss";
 
-@theme {
-  /* 1. Upgrade flat colors to modern Cyberpunk Neons */
-  --color-red-400: #ff4d6d;
-  --color-red-500: #ff0a43;
-  --color-red-600: #e00034;
-  
-  --color-green-300: #7df9ff;
-  --color-green-400: #00f0ff; /* Replaces green with glowing cyan */
-  --color-green-500: #00c3d0;
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-edge: var(--edge);
+  --color-edge2: var(--edge-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-code: var(--code-bg);
+  --color-code-ink: var(--code-ink);
+  --color-backdrop: var(--backdrop);
 }
 
-/* 2. Epic Animated Deep Space Background */
+/* Light theme (default) */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f6;
+  --edge: #e2e8f0;
+  --edge-strong: #cbd5e1;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --accent: #dc2626;
+  --accent-hover: #b91c1c;
+  --accent-soft: #fef2f2;
+  --ok: #16a34a;
+  --warn: #b45309;
+  --code-bg: #0f172a;
+  --code-ink: #e2e8f0;
+  --backdrop: rgba(15, 23, 42, 0.55);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --bg: #0b0f19;
+  --surface: #131b2a;
+  --surface-2: #0e1522;
+  --edge: #22304a;
+  --edge-strong: #33445f;
+  --ink: #f1f5f9;
+  --muted: #94a3b8;
+  --faint: #64748b;
+  --accent: #ef4444;
+  --accent-hover: #f87171;
+  --accent-soft: rgba(239, 68, 68, 0.12);
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --code-bg: #0b1220;
+  --code-ink: #e2e8f0;
+  --backdrop: rgba(2, 6, 23, 0.7);
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 body {
-  background-color: #030305;
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(255, 10, 67, 0.08), transparent 0%),
-    radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08), transparent 0%);
-  background-attachment: fixed;
-  color: #e2e8f0;
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* 3. Sleek Custom Scrollbars */
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: var(--edge-strong);
+  border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.5);
+  background: var(--accent);
 }
 
-@layer utilities {
-  /* 4. Turn all flat containers into frosted glassmorphism */
-  .bg-gray-900, .bg-gray-950 {
-    background-color: rgba(10, 10, 15, 0.5) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  /* 5. Add a subtle neon glow to primary text */
-  .text-red-500 {
-    text-shadow: 0 0 12px rgba(255, 10, 67, 0.5);
-  }
-  .text-green-400 {
-    text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
-  }
+/* Inputs & buttons */
+input,
+textarea,
+select {
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--faint);
+}
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* 6. Modernize Inputs & Buttons globally */
-input, textarea {
-  transition: all 0.3s ease !important;
-  background-color: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-input:focus, textarea:focus {
-  border-color: #ff0a43 !important;
-  box-shadow: 0 0 20px rgba(255, 10, 67, 0.15) !important;
-  outline: none !important;
-}
 button {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s !important;
+  cursor: pointer;
 }
-button:active {
-  transform: scale(0.95) !important;
+
+/* Utility helpers */
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }

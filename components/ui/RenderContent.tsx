@@ -11,7 +11,7 @@ export default function RenderContent({ content, onOpenCompiler, isReceiver = fa
 
   for (let i = 0; i < parts.length; i++) {
     if (i % 4 === 0 && parts[i]) {
-      elements.push(<span key={`text-${i}`} className={isReceiver ? "whitespace-pre-wrap font-mono text-green-300" : "whitespace-pre-wrap"}>{parts[i]}</span>);
+      elements.push(<span key={`text-${i}`} className="whitespace-pre-wrap">{parts[i]}</span>);
     } else if (i % 4 === 1) {
       if (i + 2 < parts.length) {
         const lang = parts[i].trim(); 
@@ -28,7 +28,7 @@ export default function RenderContent({ content, onOpenCompiler, isReceiver = fa
           />
         );
         i += 2; 
-      } else elements.push(<span key={`error-${i}`} className={isReceiver ? "whitespace-pre-wrap font-mono text-green-300" : "whitespace-pre-wrap"}>'''{parts[i]}</span>);
+      } else elements.push(<span key={`error-${i}`} className="whitespace-pre-wrap">{`'''${parts[i]}`}</span>);
     }
   }
   return <>{elements}</>;

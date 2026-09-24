@@ -7,6 +7,8 @@ import MatrixRain from "@/components/animations/MatrixRain";
 import FlyingPlane from "@/components/animations/FlyingPlane";
 import DictationStudio from "@/components/popups/DictationStudio";
 import CompilerStudio from "@/components/popups/CompilerStudio";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import Link from "next/link";
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
@@ -28,8 +30,8 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
-    const savedUser = localStorage.getItem("secureshare_username"); if (savedUser) setUsername(savedUser);
-    const savedGroup = localStorage.getItem("secureshare_group"); if (savedGroup) { setCurrentGroup(savedGroup); setActiveTab("groups"); }
+    const savedUser = localStorage.getItem("okshare_username"); if (savedUser) setUsername(savedUser);
+    const savedGroup = localStorage.getItem("okshare_group"); if (savedGroup) { setCurrentGroup(savedGroup); setActiveTab("groups"); }
   }, []);
 
   const handleDictationInsert = (text: string) => {
@@ -40,28 +42,63 @@ export default function Home() {
   if (!isMounted) return null;
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 overflow-hidden relative">
+    <main className="min-h-screen bg-bg text-ink flex flex-col">
       <CompilerStudio isOpen={isCompilerOpen} onClose={() => setIsCompilerOpen(false)} initialCode={compilerPayload.code} initialLang={compilerPayload.lang} />
       <DictationStudio isOpen={isDictationOpen} onClose={() => setIsDictationOpen(false)} onInsert={handleDictationInsert} />
       <MatrixRain isVisible={requirePasscode} />
-      <LoginBar username={username} setUsername={setUsername} onLogout={() => { setCurrentGroup(""); setActiveTab("pastebin"); }} />
       <FlyingPlane isVisible={isFlying} />
 
-      <div className={`w-full max-w-4xl bg-gray-900/95 backdrop-blur-md p-8 rounded-xl shadow-2xl border z-10 mt-12 transition-all duration-500 ${requirePasscode ? 'border-red-500/50 shadow-[0_0_30px_rgba(220,38,38,0.2)]' : 'border-gray-800'}`}>
-        {username && (
-          <div className="flex space-x-4 mb-6 border-b border-gray-800 pb-4">
-            <button onClick={() => setActiveTab("pastebin")} className={`pb-2 font-bold text-sm transition-colors border-b-2 ${activeTab === "pastebin" ? "border-red-500 text-white" : "border-transparent text-gray-400 hover:text-white"}`}>⚡ Ephemeral Pastebin</button>
-            <button onClick={() => setActiveTab("groups")} className={`pb-2 font-bold text-sm transition-colors border-b-2 ${activeTab === "groups" ? "border-red-500 text-white" : "border-transparent text-gray-400 hover:text-white"}`}>💬 Group Workspaces</button>
+      <header className="sticky top-0 z-30 border-b border-edge bg-surface/90 backdrop-blur">
+        <div className="mx-auto w-full max-w-5xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-white text-sm shrink-0">O</span>
+            <span className="text-ink">OK-<span className="text-accent">Share</span></span>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <ThemeToggle />
+            <LoginBar username={username} setUsername={setUsername} onLogout={() => { setCurrentGroup(""); setActiveTab("pastebin"); }} />
           </div>
-        )}
-        <h1 className="text-3xl font-bold mb-2 text-red-500">Secure <span className="text-white">Share</span></h1>
-        <p className="text-gray-400 mb-6">{activeTab === "pastebin" ? "Self-destructing text and code snippets." : currentGroup ? `Active Channel: #${currentGroup}` : "Create a group workspace and add only registered friends."}</p>
+        </div>
+      </header>
 
-        {activeTab === "pastebin" ? (
-          <PastebinWorkspace onOpenDictation={() => { setDictateTarget("pastebin"); setIsDictationOpen(true); }} setIsFlying={setIsFlying} requirePasscode={requirePasscode} setRequirePasscode={setRequirePasscode} text={pastebinText} setText={setPastebinText} />
-        ) : (
-          <GroupWorkspace username={username} currentGroup={currentGroup} setCurrentGroup={setCurrentGroup} newMessageText={chatText} setNewMessageText={setChatText} onOpenDictation={() => { setDictateTarget("chat"); setIsDictationOpen(true); }} onOpenCompiler={(code, lang) => { setCompilerPayload({ code, lang }); setIsCompilerOpen(true); }} />
-        )}
+      <div className="flex-1 w-full mx-auto max-w-5xl px-4 py-6 sm:py-10 relative z-10">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+            {activeTab === "pastebin" ? (
+              <>OK-<span className="text-accent">Share</span></>
+            ) : (
+              <>Group <span className="text-accent">Workspaces</span></>
+            )}
+          </h1>
+          <p className="text-muted mt-2 text-sm sm:text-base">
+            {activeTab === "pastebin"
+              ? "Burn-after-reading text and code snippets."
+              : currentGroup
+                ? `Active Channel: #${currentGroup}`
+                : "Create a group workspace and add only registered friends."}
+          </p>
+        </div>
+
+        <div className="w-full bg-surface border border-edge rounded-xl shadow-sm">
+          {username && (
+            <div className="flex border-b border-edge">
+              <button onClick={() => setActiveTab("pastebin")} className={`flex-1 sm:flex-none sm:px-8 px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === "pastebin" ? "border-accent text-accent bg-accent-soft" : "border-transparent text-muted hover:text-ink"}`}>
+                Ephemeral Pastebin
+              </button>
+              <button onClick={() => setActiveTab("groups")} className={`flex-1 sm:flex-none sm:px-8 px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === "groups" ? "border-accent text-accent bg-accent-soft" : "border-transparent text-muted hover:text-ink"}`}>
+                Group Workspaces
+              </button>
+            </div>
+          )}
+
+          <div className="p-4 sm:p-8">
+            {activeTab === "pastebin" ? (
+              <PastebinWorkspace onOpenDictation={() => { setDictateTarget("pastebin"); setIsDictationOpen(true); }} setIsFlying={setIsFlying} requirePasscode={requirePasscode} setRequirePasscode={setRequirePasscode} text={pastebinText} setText={setPastebinText} />
+            ) : (
+              <GroupWorkspace username={username} currentGroup={currentGroup} setCurrentGroup={setCurrentGroup} newMessageText={chatText} setNewMessageText={setChatText} onOpenDictation={() => { setDictateTarget("chat"); setIsDictationOpen(true); }} onOpenCompiler={(code, lang) => { setCompilerPayload({ code, lang }); setIsCompilerOpen(true); }} />
+            )}
+          </div>
+        </div>
       </div>
     </main>
   );

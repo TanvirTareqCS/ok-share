@@ -11,8 +11,9 @@ export default function LoginBar({ username, setUsername, onLogout }: { username
     if (!tempUsername.trim()) return;
     const cleanUser = tempUsername.trim().replace(/^@/, '');
     await set(ref(db, `users/${cleanUser}`), { registered: true, lastLogin: Date.now() });
-    localStorage.setItem("secureshare_username", cleanUser);
+    localStorage.setItem("okshare_username", cleanUser);
     setUsername(cleanUser);
+    setTempUsername("");
   };
 
   const handleClearUsername = async () => {
@@ -37,24 +38,35 @@ export default function LoginBar({ username, setUsername, onLogout }: { username
         });
       }
     }
-    localStorage.removeItem("secureshare_username"); localStorage.removeItem("secureshare_group");
+    localStorage.removeItem("okshare_username"); localStorage.removeItem("okshare_group");
     setUsername(""); setTempUsername(""); onLogout();
   };
 
+  if (username) {
+    return (
+      <div className="flex items-center gap-2 bg-surface border border-edge rounded-lg px-3 py-1.5">
+        <span className="hidden sm:inline text-xs text-muted">Logged in as:</span>
+        <span className="text-sm font-bold text-accent">@{username}</span>
+        <button onClick={handleClearUsername} className="text-xs text-muted hover:text-accent underline ml-1 font-semibold whitespace-nowrap">
+          Logout &amp; Wipe
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="absolute top-4 right-4 z-20">
-      {username ? (
-        <div className="flex items-center space-x-3 bg-gray-900 border border-gray-800 px-4 py-2 rounded-lg shadow-lg relative">
-          <span className="text-xs text-gray-400">Logged in as:</span>
-          <span className="text-green-400 font-bold font-mono">@{username}</span>
-          <button onClick={handleClearUsername} className="text-xs text-red-400 hover:text-red-300 underline ml-2 font-bold">Logout & Wipe Data</button>
-        </div>
-      ) : (
-        <form onSubmit={handleSaveUsername} className="flex items-center space-x-2 bg-gray-900 border border-gray-800 p-2 rounded-lg shadow-lg relative">
-          <input type="text" placeholder="Set username..." value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} className="bg-gray-950 border border-gray-700 rounded px-3 py-1 text-xs text-white font-mono focus:outline-none focus:border-red-500" />
-          <button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors">Login</button>
-        </form>
-      )}
-    </div>
+    <form onSubmit={handleSaveUsername} className="flex items-center gap-2 bg-surface border border-edge rounded-lg px-2 py-1.5">
+      <input
+        type="text"
+        placeholder="Username"
+        aria-label="Username"
+        value={tempUsername}
+        onChange={(e) => setTempUsername(e.target.value)}
+        className="bg-transparent border-none focus:border-none focus:shadow-none w-24 sm:w-32 text-sm text-ink"
+      />
+      <button type="submit" className="bg-accent hover:bg-accent-hover text-white px-3 py-1 rounded-md text-sm font-semibold transition-colors whitespace-nowrap">
+        Login
+      </button>
+    </form>
   );
 }

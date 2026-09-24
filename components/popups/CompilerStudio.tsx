@@ -14,7 +14,7 @@ export default function CompilerStudio({ isOpen, onClose, initialCode, initialLa
   useEffect(() => {
     if (isOpen) {
       setCode(initialCode); setLang(initialLang.toLowerCase()); setInput("");
-      setOutput("Ready to compile. Press 'Run Code'.\nNote: Interactive inputs (like C++ cin) must be provided in the Standard Input box before running.");
+      setOutput("Ready to compile. Press \"Run Code\".\nNote: Interactive inputs (like C++ cin) must be provided in the Standard Input box before running.");
     }
   }, [isOpen, initialCode, initialLang]);
 
@@ -46,38 +46,41 @@ export default function CompilerStudio({ isOpen, onClose, initialCode, initialLa
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="bg-gray-900 border border-gray-700 w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-gray-950">
-              <h3 className="text-lg font-bold text-blue-400 flex items-center space-x-2"><span>▶</span> <span>Execution Studio</span> <span className="text-gray-500 text-xs ml-2 uppercase">({lang})</span></h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-red-500 font-bold text-xl transition-colors">✕</button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-backdrop backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.96, opacity: 0 }} transition={{ duration: 0.15 }} className="bg-surface border border-edge w-full max-w-4xl h-[90vh] max-h-[720px] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-edge bg-surface2/60 shrink-0">
+              <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                Execution Studio
+                {lang && <span className="text-muted text-xs uppercase px-2 py-0.5 bg-code text-code-ink rounded">({lang})</span>}
+              </h3>
+              <button onClick={onClose} className="text-muted hover:text-accent font-bold text-xl transition-colors" aria-label="Close">✕</button>
             </div>
             <div className="flex flex-col lg:flex-row flex-1 min-h-0">
-              <div className="flex-1 flex flex-col border-r border-gray-800 min-h-0">
-                <div className="bg-gray-950 px-4 py-2 text-xs text-gray-500 font-bold uppercase tracking-wider">Source Code (Editable)</div>
-                <textarea value={code} onChange={(e) => setCode(e.target.value)} className="flex-1 w-full bg-[#1e1e1e] text-green-400 font-mono p-4 focus:outline-none resize-none text-sm" spellCheck="false" />
+              <div className="flex-1 flex flex-col border-r border-edge min-h-0">
+                <div className="px-4 py-2 text-xs text-muted font-semibold uppercase tracking-wider shrink-0">Source Code (Editable)</div>
+                <textarea value={code} onChange={(e) => setCode(e.target.value)} className="flex-1 w-full bg-code text-code-ink font-mono p-4 focus:outline-none resize-none text-sm" spellCheck="false" />
               </div>
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="h-1/3 flex flex-col border-b border-gray-800 min-h-0">
-                  <div className="bg-gray-950 px-4 py-2 text-xs text-gray-500 font-bold uppercase tracking-wider">Standard Input (stdin)</div>
-                  <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter inputs here before running..." className="flex-1 w-full bg-[#1e1e1e] text-white font-mono p-4 focus:outline-none resize-none text-sm" spellCheck="false" />
+                <div className="h-24 lg:h-1/3 flex flex-col border-b border-edge min-h-0 shrink-0">
+                  <div className="px-4 py-2 text-xs text-muted font-semibold uppercase tracking-wider">Standard Input (stdin)</div>
+                  <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter inputs here before running..." className="flex-1 w-full bg-code text-code-ink font-mono p-4 focus:outline-none resize-none text-sm" spellCheck="false" />
                 </div>
-                {/* Added min-h-0 so the scrolling works strictly inside the box boundaries */}
                 <div className="flex-1 flex flex-col min-h-0">
-                  <div className="bg-gray-950 px-4 py-2 text-xs text-gray-500 font-bold uppercase tracking-wider flex justify-between items-center">
+                  <div className="px-4 py-2 text-xs text-muted font-semibold uppercase tracking-wider flex justify-between items-center">
                     <span>Terminal Output</span>
-                    {isCompiling && <span className="text-blue-400 animate-pulse text-[10px]">Processing...</span>}
+                    {isCompiling && <span className="text-ok animate-pulse text-[10px]">Processing...</span>}
                   </div>
-                  <pre className="flex-1 min-h-0 w-full bg-black text-gray-300 font-mono p-4 overflow-y-auto text-sm whitespace-pre-wrap">{output}</pre>
+                  <pre className="flex-1 min-h-0 w-full bg-code text-code-ink font-mono p-4 overflow-y-auto text-sm whitespace-pre-wrap">{output}</pre>
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gray-950 border-t border-gray-800 flex justify-end">
-              <button onClick={executeCode} disabled={isCompiling} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-8 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2">
-                <span>{isCompiling ? "Executing..." : "Run Code"}</span>{!isCompiling && <span>▶</span>}
+            <div className="p-4 bg-surface2/60 border-t border-edge flex justify-end shrink-0">
+              <button onClick={executeCode} disabled={isCompiling} className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-white px-8 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z" /></svg>
+                <span>{isCompiling ? "Executing..." : "Run Code"}</span>
               </button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

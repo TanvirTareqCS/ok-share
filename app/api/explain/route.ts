@@ -4,7 +4,8 @@ const PROMPTS: Record<string, string> = {
   ADIB: "Explain this code in very simple Bengali script, as if teaching a beginner. Break down the logic step-by-step in native Bengali.",
   FABIHA: "Explain this code in extremely simple, easy-to-understand English without using heavy technical jargon.",
   MAHATAB: "Give a highly concise, 2-sentence summary of exactly what this code does. Be direct.",
-  MAHIN: "Over-explain the absolute most basic concepts of this code in massive detail, treating the reader like they have never seen code before."
+  MAHIN: "Over-explain the absolute most basic concepts of this code in massive detail, treating the reader like they have never seen code before.",
+  SYNTAX: "You are a strict code reviewer. Check the code ONLY for syntax errors. Respond with a short report: for each error write '- Line X: <what is wrong> -> fix: <exact suggested edit>'. If there are no syntax errors, reply exactly 'No syntax errors found — code looks valid.' Do not summarize what the code does or suggest style improvements."
 };
 
 export async function POST(req: Request) {
