@@ -33,6 +33,7 @@ export default function GroupWorkspace({
   onOpenCompiler,
 }: Props) {
   const [manageOpen, setManageOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const handleGroupClosed = useCallback(() => setCurrentGroup(""), [setCurrentGroup]);
 
@@ -45,6 +46,7 @@ export default function GroupWorkspace({
   const handleGroupEntered = useCallback(
     (groupName: string) => {
       setManageOpen(false);
+      setPendingFile(null);
       setCurrentGroup(groupName);
     },
     [setCurrentGroup],
@@ -65,10 +67,11 @@ export default function GroupWorkspace({
   });
 
   const handleSend = async () => {
-    const isSent = await channel.sendMessage(newMessageText);
+    const isSent = await channel.sendMessage(newMessageText, pendingFile);
     if (!isSent) return;
 
     setNewMessageText("");
+    setPendingFile(null);
     presence.stopTyping();
   };
 
@@ -150,6 +153,7 @@ export default function GroupWorkspace({
       <GroupMessageList
         messages={channel.messages}
         username={username}
+        channelKey={channel.channelKey}
         onOpenCompiler={onOpenCompiler}
         onDeleteMessage={channel.deleteMessage}
         isReadByEveryone={presence.hasReadByEveryone}
@@ -159,12 +163,16 @@ export default function GroupWorkspace({
         text={newMessageText}
         isSending={channel.isSending}
         isLocked={isLocked}
+        canAttach={channel.isSealed && !!channel.channelKey}
+        file={pendingFile}
         onTextChange={(text) => {
           setNewMessageText(text);
           presence.notifyTyping();
         }}
         onSend={handleSend}
         onOpenDictation={onOpenDictation}
+        onPickFile={setPendingFile}
+        onClearFile={() => setPendingFile(null)}
         onStopTyping={presence.stopTyping}
       />
     </div>

@@ -12,6 +12,6 @@ const FIREBASE_CONFIG = {
   measurementId: "G-7DNZJJZD69",
 };
 
-const firebaseApp = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+export const firebaseApp = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
 
 export const db = getDatabase(firebaseApp);

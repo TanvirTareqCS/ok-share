@@ -5,7 +5,8 @@ import { get, onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "@/lib/firebase/database";
 import { DB_PATHS } from "@/lib/firebase/paths";
 import { STORAGE_KEYS } from "@/lib/storage/localKeys";
-import { deriveChannelKey, openWithKey, sealWithKey, verifyChannelCheck } from "@/lib/crypto/secretCipher";
+import { bufferToBase64, deriveChannelKey, openWithKey, sealWithKey, verifyChannelCheck } from "@/lib/crypto/secretCipher";
+import { classifyFileName, FILE_CAP_BYTES, sealBytesWithKey } from "@/lib/crypto/fileCipher";
 import type { SealedMessage } from "@/lib/crypto/secretCipher";
 import { UNDECRYPTABLE_MARKER } from "@/lib/types";
 import type { GroupMessage } from "@/lib/types";
@@ -32,7 +33,7 @@ export interface GroupChannel {
   leaveGroup: () => Promise<void>;
   unlock: (passphrase: string) => Promise<boolean>;
   reenter: () => void;
-  sendMessage: (text: string) => Promise<boolean>;
+  sendMessage: (text: string, file?: File | null) => Promise<boolean>;
   deleteMessage: (messageId: string) => Promise<void>;
 }
 
@@ -82,10 +83,12 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
       raw.map(async (message) => {
         if (!message.sealed || !key) return message;
         try {
-          const text = await openWithKey(key, {
-            ciphertext: message.ciphertext as string,
-            iv: message.iv as string,
-          });
+          const text = message.ciphertext
+            ? await openWithKey(key, {
+                ciphertext: message.ciphertext as string,
+                iv: message.iv as string,
+              })
+            : (message.text ?? "");
           return { ...message, text };
         } catch {
           return { ...message, text: UNDECRYPTABLE_MARKER };
@@ -189,7 +192,7 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
 
       rawMessagesRef.current = raw;
       sealedMessagesRef.current = raw
-        .filter((message) => message.sealed)
+        .filter((message) => message.sealed && typeof message.ciphertext === "string")
         .map((message) => ({
           ciphertext: message.ciphertext as string,
           iv: message.iv as string,
@@ -238,29 +241,63 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
   }, [applyChannelKey, isSealed]);
 
   const sendMessage = useCallback(
-    async (rawText: string) => {
+    async (rawText: string, file?: File | null) => {
       const text = rawText.trim();
-      if (!text || !groupName) return false;
+      if ((!text && !file) || !groupName) return false;
 
       if (isSealed && !channelKeyRef.current) {
         alert("Unlock the channel passphrase first!");
         return false;
       }
 
+      if (file) {
+        if (!isSealed) {
+          alert("Seal the channel to share files.");
+          return false;
+        }
+        if (file.size > FILE_CAP_BYTES) {
+          alert(`"${file.name}" exceeds the 5 MB file limit.`);
+          return false;
+        }
+      }
+
       setIsSending(true);
       try {
-        const messagesRef = ref(db, DB_PATHS.groupMessages(groupName));
-
         if (isSealed && channelKeyRef.current) {
-          const sealed = await sealWithKey(channelKeyRef.current, text);
-          await push(messagesRef, {
+          const messageRef = push(ref(db, DB_PATHS.groupMessages(groupName)));
+          const payload: Record<string, unknown> = {
             sender: username,
-            ...sealed,
             sealed: true,
+            timestamp: Date.now(),
+          };
+
+          if (text) {
+            const sealed = await sealWithKey(channelKeyRef.current, text);
+            payload.ciphertext = sealed.ciphertext;
+            payload.iv = sealed.iv;
+          }
+
+          if (file) {
+            const bytes = await file.arrayBuffer();
+            const sealedFile = await sealBytesWithKey(channelKeyRef.current, bytes);
+            payload.attachment = {
+              name: file.name,
+              size: file.size,
+              kind: classifyFileName(file.name),
+              iv: sealedFile.iv,
+              ciphertext: bufferToBase64(sealedFile.bytes),
+            };
+          }
+
+          await set(messageRef, payload);
+        } else if (text) {
+          await push(ref(db, DB_PATHS.groupMessages(groupName)), {
+            sender: username,
+            text,
             timestamp: Date.now(),
           });
         } else {
-          await push(messagesRef, { sender: username, text, timestamp: Date.now() });
+          return false;
         }
 
         return true;

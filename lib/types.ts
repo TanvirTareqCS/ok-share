@@ -6,6 +6,40 @@ export function isUndecryptable(message: GroupMessage): boolean {
   return message.text === UNDECRYPTABLE_MARKER;
 }
 
+export type FileKind = "image" | "document" | "code" | "other";
+
+export interface FileAttachment {
+  name: string;
+  size: number;
+  kind: FileKind;
+  iv: string;
+  ciphertext: string;
+}
+
+export interface SharedFile {
+  name: string;
+  size: number;
+  kind: FileKind;
+  data?: string;
+  salt?: string;
+  iv?: string;
+  ciphertext?: string;
+}
+
+export interface SealedSecretLike {
+  ciphertext: string;
+  salt: string;
+  iv: string;
+}
+
+export interface AttachmentDraft {
+  id: string;
+  name: string;
+  size: number;
+  kind: FileKind;
+  file: File;
+}
+
 export interface GroupMessage {
   id: string;
   sender: string;
@@ -14,6 +48,7 @@ export interface GroupMessage {
   sealed?: boolean;
   ciphertext?: string;
   iv?: string;
+  attachment?: FileAttachment;
 }
 
 export interface SharedSecret {
@@ -22,6 +57,9 @@ export interface SharedSecret {
   ciphertext?: string;
   salt?: string;
   iv?: string;
+  files?: SharedFile[];
+  check?: { ciphertext: string; iv: string };
+  checkSalt?: string;
   views?: number;
   maxViews?: number;
   createdAt?: number;

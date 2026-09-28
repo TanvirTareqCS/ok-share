@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { classifyFileName } from "@/lib/crypto/fileCipher";
+import type { AttachmentDraft } from "@/lib/types";
 import PasscodePanel from "./PasscodePanel";
 import PastebinEditor from "./PastebinEditor";
+import PastebinFilePicker from "./PastebinFilePicker";
 import PastebinOptions from "./PastebinOptions";
 import ShareLinkResult from "./ShareLinkResult";
 import { usePastebinSecret } from "./usePastebinSecret";
@@ -17,6 +20,17 @@ interface Props {
   onOpenDictation: () => void;
 }
 
+function createAttachment(files: File[], index: number): AttachmentDraft {
+  const file = files[index];
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: file.name,
+    size: file.size,
+    kind: classifyFileName(file.name),
+    file,
+  };
+}
+
 export default function PastebinWorkspace({
   text,
   setText,
@@ -27,6 +41,7 @@ export default function PastebinWorkspace({
 }: Props) {
   const [passcode, setPasscode] = useState("");
   const [maxViews, setMaxViews] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState<AttachmentDraft[]>([]);
 
   const draft = usePastebinSecret({
     text,
@@ -34,8 +49,16 @@ export default function PastebinWorkspace({
     passcode,
     maxViews,
     requirePasscode,
+    files: attachedFiles,
     setIsFlying,
   });
+
+  const handleAddFiles = (picked: File[]) => {
+    setAttachedFiles((previous) => [
+      ...previous,
+      ...picked.map((_, index) => createAttachment(picked, index)),
+    ]);
+  };
 
   const handleCreateAnother = () => {
     draft.clearLink();
@@ -43,6 +66,7 @@ export default function PastebinWorkspace({
     setPasscode("");
     setMaxViews("");
     setRequirePasscode(false);
+    setAttachedFiles([]);
   };
 
   if (draft.shareableLink) {
@@ -56,6 +80,15 @@ export default function PastebinWorkspace({
         isMasking={draft.isMasking}
         onTextChange={setText}
         onOpenDictation={onOpenDictation}
+      />
+
+      <PastebinFilePicker
+        files={attachedFiles}
+        isLocked={draft.isMasking || draft.isLoading}
+        onAddFiles={handleAddFiles}
+        onRemove={(id) =>
+          setAttachedFiles((previous) => previous.filter((file) => file.id !== id))
+        }
       />
 
       <AnimatePresence>

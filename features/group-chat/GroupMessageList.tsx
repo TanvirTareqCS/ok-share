@@ -7,6 +7,7 @@ import type { GroupMessage } from "@/lib/types";
 interface Props {
   messages: GroupMessage[];
   username: string;
+  channelKey: CryptoKey | null;
   onOpenCompiler: (code: string, language: string) => void;
   onDeleteMessage: (messageId: string) => void;
   isReadByEveryone: (message: GroupMessage) => boolean;
@@ -15,6 +16,7 @@ interface Props {
 export default function GroupMessageList({
   messages,
   username,
+  channelKey,
   onOpenCompiler,
   onDeleteMessage,
   isReadByEveryone,
@@ -37,6 +39,7 @@ export default function GroupMessageList({
             key={message.id}
             message={message}
             isOwn={message.sender === username}
+            channelKey={channelKey}
             isReadByEveryone={isReadByEveryone(message)}
             onOpenCompiler={onOpenCompiler}
             onDelete={() => onDeleteMessage(message.id)}

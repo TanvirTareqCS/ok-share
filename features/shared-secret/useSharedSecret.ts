@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { get, ref, remove, runTransaction } from "firebase/database";
 import { db } from "@/lib/firebase/database";
 import { DB_PATHS } from "@/lib/firebase/paths";
-import { decryptSecret } from "@/lib/crypto/secretCipher";
+import { decryptSecret, deriveChannelKey, verifyChannelCheck } from "@/lib/crypto/secretCipher";
 import type { SharedSecret } from "@/lib/types";
 
 const CONNECTION_ERROR = "Error connecting to database.";
@@ -94,21 +94,33 @@ export function useSharedSecret(secretId: string): SharedSecretState {
     const current = secretRef.current;
     if (!current?.sealed) return "ignored";
 
-    if (!passcode.trim()) {
+    const trimmed = passcode.trim();
+    if (!trimmed) {
       alert("Enter the decryption passcode first!");
       return "ignored";
     }
 
     setIsDecrypting(true);
     try {
-      const plaintext = await decryptSecret(
-        {
-          ciphertext: current.ciphertext as string,
-          salt: current.salt as string,
-          iv: current.iv as string,
-        },
-        passcode,
-      );
+      if (current.check && typeof current.checkSalt === "string") {
+        const checkKey = await deriveChannelKey(trimmed, current.checkSalt);
+        if (!(await verifyChannelCheck(checkKey, current.check))) {
+          alert("Incorrect passcode!");
+          return "wrong-passcode";
+        }
+      }
+
+      let plaintext = "";
+      if (current.ciphertext && current.salt && current.iv) {
+        plaintext = await decryptSecret(
+          {
+            ciphertext: current.ciphertext,
+            salt: current.salt,
+            iv: current.iv,
+          },
+          trimmed,
+        );
+      }
       setDecryptedText(plaintext);
       setIsUnlocked(true);
       return "unlocked";

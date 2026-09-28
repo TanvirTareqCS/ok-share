@@ -3,11 +3,13 @@
 import { SpeakerIcon } from "@/components/icons/ActionIcons";
 import { speakText } from "@/lib/speech/tts";
 import RichText from "@/features/code-blocks/RichText";
+import GroupFileAttachment from "./GroupFileAttachment";
 import type { GroupMessage } from "@/lib/types";
 
 interface Props {
   message: GroupMessage;
   isOwn: boolean;
+  channelKey: CryptoKey | null;
   isReadByEveryone: boolean;
   onOpenCompiler: (code: string, language: string) => void;
   onDelete: () => void;
@@ -16,6 +18,7 @@ interface Props {
 export default function GroupMessageItem({
   message,
   isOwn,
+  channelKey,
   isReadByEveryone,
   onOpenCompiler,
   onDelete,
@@ -52,9 +55,14 @@ export default function GroupMessageItem({
       <div
         className={`p-3 rounded-lg max-w-full lg:max-w-[85%] text-sm relative group border ${isOwn ? "bg-accent-soft border-accent/30 text-ink" : "bg-surface border-edge text-ink"}`}
       >
-        <div className="max-w-none">
-          <RichText content={message.text ?? ""} onOpenCompiler={onOpenCompiler} />
-        </div>
+        {!!message.text && (
+          <div className="max-w-none">
+            <RichText content={message.text ?? ""} onOpenCompiler={onOpenCompiler} />
+          </div>
+        )}
+        {message.attachment && (
+          <GroupFileAttachment attachment={message.attachment} channelKey={channelKey} />
+        )}
         {isOwn && (
           <button
             onClick={onDelete}

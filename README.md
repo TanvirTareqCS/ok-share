@@ -8,15 +8,21 @@ Ephemeral, encrypted sharing for text, code, and group chats — built for frien
 
 ### 🔥 Ephemeral Pastebin
 - **Burn-after-reading** secrets that are deleted from the database the moment they're shared.
-- **Passcode-protected secrets** — text is **AES-256-GCM encrypted in the browser** before it ever touches Firebase. The key is derived from your passcode (PBKDF2, 150k iterations); only `salt + iv + ciphertext` are stored. No plaintext, no passcode, ever.
+- **Passcode-protected secrets** — text **and files** are **AES-256-GCM encrypted in the browser** before they ever touch Firebase. The key is derived from your passcode (PBKDF2, 150k iterations); only `salt + iv + ciphertext` are stored. No plaintext, no passcode, ever.
 - **Auto-burn after N views** — the share link destroys itself once it's been opened a set number of times.
 - Live "matrix rain" effect while locked, with a decryption countdown on burn.
 
 ### 👥 Group Workspaces
 - Temporary channels for a handful of registered friends.
-- **E2E-encrypted channels** (optional) — set a channel passphrase and every message is encrypted before it's stored. The passphrase is shared out-of-band and never saved to the DB.
+- **E2E-encrypted channels** (optional) — set a channel passphrase and every message *and file* is encrypted before it's stored. The passphrase is shared out-of-band and never saved to the DB.
 - **WhatsApp-style read receipts** — `✓` sent, `✓✓` read by all members.
 - **Typing indicators** and **unread counts** on re-entry.
+
+### 📎 File Sharing
+- Attach images, PDFs, documents, and source code to pastes and group messages — no Firebase Storage required, everything lives inline in the Realtime Database, so the free tier (no Blaze plan) handles it all.
+- **Images preview inline** (with a click-to-enlarge full-screen view), PDFs and text/code open in a big-screen viewer from a tidy file chip; everything can be downloaded.
+- **No passcode?** Files are stored openly as bytes so the link works with zero friction. **Passcode on?** Every file is sealed with the same passcode-derived key as the text. **Sealed group channel?** Files are sealed with the channel key.
+- Client-side limits keep payloads inside RTDB's size ceiling: **up to 5 MB per file, 8 MB total per share**. Images over 5 MB are **auto-compressed in the browser** (Canvas → JPEG) instead of being rejected.
 
 ### 🤖 AI Code Tools (Groq)
 - Every code block has an **Explain** dropdown with five modes: syntax check, simple English, short summary, super-detailed, and Bangla.
@@ -35,11 +41,16 @@ Client → Firebase Realtime Database, everything visible to you is plaintext; e
 | Data | At rest in Firebase |
 | --- | --- |
 | Unprotected paste | plaintext `text` |
+| Public paste files | base64 `data` in `files[]` |
 | Passcode-protected paste | `{ salt, iv, ciphertext }` + AES-256-GCM blob, the passcode derives the key in your browser |
+| Passcode-protected paste files | per-file `{ salt, iv, ciphertext }` sealed under the same derived key |
 | Group channel messages | opt-in `{ salt, iv, ciphertext }` per message when the channel has a passphrase |
+| Group channel files | `{ iv, ciphertext }` sealed under the channel key (file shares require a sealed channel) |
 | Group meta (members, typing, read receipts) | plaintext metadata |
 
 Passcode-protected secrets and passphrased channels use WebCrypto (`crypto.subtle`), so the app must run over **HTTPS** (or `localhost`).
+
+> ℹ️ File sizes are capped at **5 MB each / 8 MB total** because Realtime Database values max out around 10 MB; images over 5 MB are compressed to JPEG in the browser instead of rejected.
 
 ## Getting started
 

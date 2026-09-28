@@ -18,6 +18,7 @@ interface Props {
 
 export default function SharedSecretView({ secretId }: Props) {
   const [passcode, setPasscode] = useState("");
+  const [pin, setPin] = useState("");
   const [isCompilerOpen, setIsCompilerOpen] = useState(false);
   const [compilerPayload, setCompilerPayload] = useState({ code: "", language: "" });
 
@@ -51,7 +52,13 @@ export default function SharedSecretView({ secretId }: Props) {
 
   const handleDecrypt = async () => {
     const outcome = await decrypt(passcode);
-    if (outcome === "wrong-passcode") setPasscode("");
+    if (outcome === "unlocked") {
+      setPin(passcode);
+      return;
+    }
+    if (outcome === "wrong-passcode" && !(secret?.files?.length)) {
+      setPasscode("");
+    }
   };
 
   if (isLoading) {
@@ -119,6 +126,8 @@ export default function SharedSecretView({ secretId }: Props) {
           <>
             <SecretPayload
               payloadText={payloadText}
+              files={secret.files}
+              pin={pin}
               isDetonating={burn.isDetonating}
               countdown={burn.countdown}
               onOpenCompiler={openCompiler}

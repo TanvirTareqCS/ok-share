@@ -16,7 +16,7 @@ export interface SealedMessage {
   iv: string;
 }
 
-function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
+export function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let binary = "";
   const chunk = 0x8000;
@@ -26,7 +26,7 @@ function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   return btoa(binary);
 }
 
-function base64ToBuffer(b64: string): Uint8Array<ArrayBuffer> {
+export function base64ToBuffer(b64: string): Uint8Array<ArrayBuffer> {
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -63,6 +63,10 @@ export async function decryptSecret(secret: SealedSecret, passcode: string): Pro
 
 export async function deriveChannelKey(passphrase: string, saltB64: string): Promise<CryptoKey> {
   return deriveKeyFromSalt(passphrase, base64ToBuffer(saltB64));
+}
+
+export async function derivePinKey(passcode: string, saltB64: string): Promise<CryptoKey> {
+  return deriveKeyFromSalt(passcode, base64ToBuffer(saltB64));
 }
 
 export async function sealWithKey(key: CryptoKey, plaintext: string): Promise<SealedMessage> {
