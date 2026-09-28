@@ -4,6 +4,10 @@ interface Props {
   groupName: string;
   members: string[];
   isSealed: boolean;
+  isCreator: boolean;
+  isAdmin: boolean;
+  manageOpen: boolean;
+  onToggleManage: () => void;
   typingUsers: string[];
   unreadCount: number;
   onLeave: () => void;
@@ -13,6 +17,10 @@ export default function GroupHeader({
   groupName,
   members,
   isSealed,
+  isCreator,
+  isAdmin,
+  manageOpen,
+  onToggleManage,
   typingUsers,
   unreadCount,
   onLeave,
@@ -32,12 +40,22 @@ export default function GroupHeader({
         )}
         {unreadCount > 0 && <span className="text-accent text-xs font-bold">● {unreadCount} new</span>}
       </div>
-      <button
-        onClick={onLeave}
-        className="text-accent text-xs font-semibold underline self-start sm:self-auto"
-      >
-        Leave Channel
-      </button>
+      <div className="flex items-center gap-3 self-start sm:self-auto">
+        {(isCreator || isAdmin) && (
+          <button
+            onClick={onToggleManage}
+            className="text-ink text-xs font-semibold border border-edge rounded-md px-2.5 py-1 hover:bg-edge transition-colors"
+          >
+            {manageOpen ? "Done" : "Manage"} Members
+          </button>
+        )}
+        <button
+          onClick={onLeave}
+          className="text-accent text-xs font-semibold underline self-start sm:self-auto"
+        >
+          Leave Channel
+        </button>
+      </div>
     </div>
   );
 }

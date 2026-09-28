@@ -6,6 +6,7 @@ export const DB_PATHS = {
   group: (groupName: string) => `groups/${groupName}`,
   groupMeta: (groupName: string) => `groups/${groupName}/meta`,
   groupMembers: (groupName: string) => `groups/${groupName}/meta/members`,
+  groupAdmins: (groupName: string) => `groups/${groupName}/meta/admins`,
   groupTyping: (groupName: string) => `groups/${groupName}/meta/typing`,
   typingIndicator: (groupName: string, username: string) =>
     `groups/${groupName}/meta/typing/${username}`,

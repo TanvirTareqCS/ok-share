@@ -3,6 +3,8 @@ const decoder = new TextDecoder();
 
 const PBKDF2_ITERATIONS = 150000;
 
+export const CHANNEL_VERIFY_TEXT = "okshare-channel-verify";
+
 export interface SealedSecret {
   ciphertext: string;
   salt: string;
@@ -76,4 +78,16 @@ export async function openWithKey(key: CryptoKey, payload: SealedMessage): Promi
     base64ToBuffer(payload.ciphertext)
   );
   return decoder.decode(plain);
+}
+
+export async function createChannelCheck(key: CryptoKey): Promise<SealedMessage> {
+  return sealWithKey(key, CHANNEL_VERIFY_TEXT);
+}
+
+export async function verifyChannelCheck(key: CryptoKey, check: SealedMessage): Promise<boolean> {
+  try {
+    return (await openWithKey(key, check)) === CHANNEL_VERIFY_TEXT;
+  } catch {
+    return false;
+  }
 }

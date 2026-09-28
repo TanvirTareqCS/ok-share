@@ -1,5 +1,11 @@
 export type ExplainMode = "SYNTAX" | "ADIB" | "FABIHA" | "MAHATAB" | "MAHIN";
 
+export const UNDECRYPTABLE_MARKER = "[cannot decrypt]";
+
+export function isUndecryptable(message: GroupMessage): boolean {
+  return message.text === UNDECRYPTABLE_MARKER;
+}
+
 export interface GroupMessage {
   id: string;
   sender: string;
@@ -24,9 +30,14 @@ export interface SharedSecret {
 export interface GroupMeta {
   creator: string;
   members: string[];
+  admins?: string[];
   createdAt: number;
   sealed?: boolean;
   salt?: string;
+  check?: {
+    ciphertext: string;
+    iv: string;
+  };
   typing?: Record<string, number>;
   lastRead?: Record<string, number>;
 }

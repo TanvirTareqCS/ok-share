@@ -5,7 +5,9 @@ import { get, onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "@/lib/firebase/database";
 import { DB_PATHS } from "@/lib/firebase/paths";
 import { STORAGE_KEYS } from "@/lib/storage/localKeys";
-import { deriveChannelKey, openWithKey, sealWithKey } from "@/lib/crypto/secretCipher";
+import { deriveChannelKey, openWithKey, sealWithKey, verifyChannelCheck } from "@/lib/crypto/secretCipher";
+import type { SealedMessage } from "@/lib/crypto/secretCipher";
+import { UNDECRYPTABLE_MARKER } from "@/lib/types";
 import type { GroupMessage } from "@/lib/types";
 
 interface Args {
@@ -16,48 +18,100 @@ interface Args {
 
 export interface GroupChannel {
   members: string[];
+  admins: string[];
   messages: GroupMessage[];
   lastReadBy: Record<string, number>;
   typingMap: Record<string, number>;
   isSealed: boolean;
+  isCreator: boolean;
+  isAdmin: boolean;
   channelKey: CryptoKey | null;
   needsPassphrase: boolean;
   isSending: boolean;
   leaveLocal: () => void;
   leaveGroup: () => Promise<void>;
   unlock: (passphrase: string) => Promise<boolean>;
+  reenter: () => void;
   sendMessage: (text: string) => Promise<boolean>;
   deleteMessage: (messageId: string) => Promise<void>;
 }
 
 export function useGroupChannel({ username, groupName, onGroupClosed }: Args): GroupChannel {
   const [members, setMembers] = useState<string[]>([]);
+  const [admins, setAdmins] = useState<string[]>([]);
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [lastReadBy, setLastReadBy] = useState<Record<string, number>>({});
   const [typingMap, setTypingMap] = useState<Record<string, number>>({});
   const [isSealed, setIsSealed] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [channelKey, setChannelKey] = useState<CryptoKey | null>(null);
   const [needsPassphrase, setNeedsPassphrase] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
   const channelKeyRef = useRef<CryptoKey | null>(null);
   const saltRef = useRef("");
+  const checkRef = useRef<SealedMessage | null>(null);
+  const sealedMessagesRef = useRef<SealedMessage[]>([]);
+  const rawMessagesRef = useRef<GroupMessage[]>([]);
+  const manualLockRef = useRef(false);
 
   const applyChannelKey = useCallback((key: CryptoKey | null) => {
     channelKeyRef.current = key;
     setChannelKey(key);
   }, []);
 
+  const verifyKey = useCallback(async (key: CryptoKey): Promise<boolean> => {
+    const check = checkRef.current;
+    if (check) return verifyChannelCheck(key, check);
+
+    for (const payload of sealedMessagesRef.current) {
+      try {
+        await openWithKey(key, payload);
+        return true;
+      } catch {
+        // try the next sealed message
+      }
+    }
+    return sealedMessagesRef.current.length === 0;
+  }, []);
+
+  const decryptRaw = useCallback(async (raw: GroupMessage[]) => {
+    const key = channelKeyRef.current;
+    const decrypted = await Promise.all(
+      raw.map(async (message) => {
+        if (!message.sealed || !key) return message;
+        try {
+          const text = await openWithKey(key, {
+            ciphertext: message.ciphertext as string,
+            iv: message.iv as string,
+          });
+          return { ...message, text };
+        } catch {
+          return { ...message, text: UNDECRYPTABLE_MARKER };
+        }
+      }),
+    );
+    if (channelKeyRef.current === key) setMessages(decrypted);
+  }, []);
+
   const leaveLocal = useCallback(() => {
     localStorage.removeItem(STORAGE_KEYS.activeGroup);
     setMessages([]);
     setMembers([]);
+    setAdmins([]);
     setLastReadBy({});
     setTypingMap({});
     setNeedsPassphrase(false);
     applyChannelKey(null);
     setIsSealed(false);
+    setIsCreator(false);
+    setIsAdmin(false);
     saltRef.current = "";
+    checkRef.current = null;
+    sealedMessagesRef.current = [];
+    rawMessagesRef.current = [];
+    manualLockRef.current = false;
     onGroupClosed();
   }, [applyChannelKey, onGroupClosed]);
 
@@ -79,67 +133,77 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
       }
 
       setMembers([data.creator, ...(data.members || [])]);
+      setAdmins(data.admins || []);
       setLastReadBy(data.lastRead || {});
       setTypingMap(data.typing || {});
       setIsSealed(!!data.sealed);
+      setIsCreator(data.creator === username);
+      setIsAdmin(!!data.admins?.includes(username));
       if (typeof data.salt === "string") saltRef.current = data.salt;
+      if (
+        data.check &&
+        typeof data.check.ciphertext === "string" &&
+        typeof data.check.iv === "string"
+      ) {
+        checkRef.current = { ciphertext: data.check.ciphertext, iv: data.check.iv };
+      }
 
-      if (data.sealed && !channelKeyRef.current) {
+      if (data.sealed && !channelKeyRef.current && !manualLockRef.current) {
         const stored = localStorage.getItem(STORAGE_KEYS.groupPassphrase(groupName));
         if (!stored) {
           setNeedsPassphrase(true);
           return;
         }
         deriveChannelKey(stored, data.salt)
-          .then((key) => {
-            applyChannelKey(key);
-            setNeedsPassphrase(false);
+          .then(async (key) => {
+            if (await verifyKey(key)) {
+              applyChannelKey(key);
+              setNeedsPassphrase(false);
+            } else {
+              localStorage.removeItem(STORAGE_KEYS.groupPassphrase(groupName));
+              setNeedsPassphrase(true);
+            }
           })
           .catch(() => setNeedsPassphrase(true));
       }
     });
 
     return () => unsubscribeMeta();
-  }, [groupName, username, applyChannelKey, leaveLocal]);
+  }, [groupName, username, applyChannelKey, leaveLocal, verifyKey]);
 
   useEffect(() => {
     if (!groupName || !username) return;
 
-    const unsubscribeMessages = onValue(
-      ref(db, DB_PATHS.groupMessages(groupName)),
-      async (snapshot) => {
-        if (!snapshot.exists()) {
-          setMessages([]);
-          return;
-        }
+    const unsubscribeMessages = onValue(ref(db, DB_PATHS.groupMessages(groupName)), (snapshot) => {
+      if (!snapshot.exists()) {
+        rawMessagesRef.current = [];
+        sealedMessagesRef.current = [];
+        setMessages([]);
+        return;
+      }
 
-        const raw: GroupMessage[] = [];
-        snapshot.forEach((child) => {
-          raw.push({ id: child.key as string, ...child.val() });
-        });
+      const raw: GroupMessage[] = [];
+      snapshot.forEach((child) => {
+        raw.push({ id: child.key as string, ...child.val() });
+      });
 
-        const key = channelKeyRef.current;
-        const decrypted = await Promise.all(
-          raw.map(async (message) => {
-            if (!message.sealed || !key) return message;
-            try {
-              const text = await openWithKey(key, {
-                ciphertext: message.ciphertext as string,
-                iv: message.iv as string,
-              });
-              return { ...message, text };
-            } catch {
-              return { ...message, text: "[cannot decrypt]" };
-            }
-          }),
-        );
+      rawMessagesRef.current = raw;
+      sealedMessagesRef.current = raw
+        .filter((message) => message.sealed)
+        .map((message) => ({
+          ciphertext: message.ciphertext as string,
+          iv: message.iv as string,
+        }));
 
-        setMessages(decrypted);
-      },
-    );
+      decryptRaw(raw);
+    });
 
     return () => unsubscribeMessages();
-  }, [groupName, username]);
+  }, [groupName, username, decryptRaw]);
+
+  useEffect(() => {
+    if (rawMessagesRef.current.length > 0) decryptRaw(rawMessagesRef.current);
+  }, [channelKey, decryptRaw]);
 
   const unlock = useCallback(
     async (passphrase: string) => {
@@ -149,8 +213,11 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
         return false;
       }
 
+      manualLockRef.current = true;
       try {
         const key = await deriveChannelKey(trimmed, saltRef.current);
+        if (!(await verifyKey(key))) return false;
+        manualLockRef.current = false;
         localStorage.setItem(STORAGE_KEYS.groupPassphrase(groupName), trimmed);
         applyChannelKey(key);
         setNeedsPassphrase(false);
@@ -160,8 +227,15 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
         return false;
       }
     },
-    [applyChannelKey, groupName],
+    [applyChannelKey, groupName, verifyKey],
   );
+
+  const reenter = useCallback(() => {
+    if (!isSealed) return;
+    manualLockRef.current = true;
+    applyChannelKey(null);
+    setNeedsPassphrase(true);
+  }, [applyChannelKey, isSealed]);
 
   const sendMessage = useCallback(
     async (rawText: string) => {
@@ -234,16 +308,20 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
 
   return {
     members,
+    admins,
     messages,
     lastReadBy,
     typingMap,
     isSealed,
+    isCreator,
+    isAdmin,
     channelKey,
     needsPassphrase,
     isSending,
     leaveLocal,
     leaveGroup,
     unlock,
+    reenter,
     sendMessage,
     deleteMessage,
   };
