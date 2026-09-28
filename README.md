@@ -55,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Where | Required |
 | --- | --- | --- |
 | `GROQ_API_KEY` | `.env.local` | Yes, for Explain/Check-Syntax |
-| Firebase config | `lib/firebase/config.ts` | Yes, paste your own RTDB config |
+| Firebase config | `lib/firebase/database.ts` | Yes, paste your own RTDB config |
 
 ```bash
 # .env.local
@@ -70,6 +70,47 @@ GROQ_API_KEY=gsk_your_key
 npm run build
 npm run start
 ```
+
+## Project structure
+
+Route files in `app/` are thin — they resolve params or return a single view. Everything
+else is colocated by feature, so all the code for one feature lives in one folder.
+
+```
+app/                    # routes only: pages, API handlers, layout, global CSS
+  page.tsx              #   4 lines — renders <HomeShell />
+  s/[id]/page.tsx       #   8 lines — unwraps params, renders <SharedSecretView />
+  api/*/route.ts        #   server-only request handlers
+
+features/<feature>/     # everything a feature needs, colocated
+  *View.tsx / *Dialog.tsx   # the feature's main component
+  <Part>.tsx               # individual UI pieces
+  use<Thing>.ts             # data, subscriptions and side effects
+  <thing>.ts                # feature-local constants, types, pure helpers
+
+components/             # genuinely cross-feature visuals only
+  animations/           #   MatrixRain, FlyingPlane, DetonationEffect
+  icons/                #   shared inline SVGs
+
+lib/                    # cross-feature infrastructure, no React
+  api/                  #   typed clients for the app's own API routes
+  crypto/ firebase/     #   encryption and Realtime Database access
+  storage/              #   localStorage key names in one place
+  types.ts              #   domain models shared across features
+```
+
+Rules of thumb:
+
+- **Route files stay thin.** If a file under `app/` grows past a few lines, the logic
+  belongs in a `features/*` folder.
+- **Side effects live in hooks.** A `use<Thing>` hook owns subscriptions, timers and
+  async work; the component above it only renders.
+- **One feature never imports another feature's internals.** Shared code moves to
+  `lib/` or `components/`.
+- **Firebase paths and localStorage keys are centralised** in `lib/firebase/paths.ts`
+  and `lib/storage/localKeys.ts` rather than string-built at the call site.
+
+Run `npm run typecheck` and `npm run lint` before committing.
 
 ## Tech stack
 

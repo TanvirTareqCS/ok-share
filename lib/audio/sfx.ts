@@ -1,6 +1,13 @@
+type AudioContextConstructor = new () => AudioContext;
+
+function createAudioContext(): AudioContext {
+  const scope = window as unknown as { webkitAudioContext?: AudioContextConstructor };
+  return new (window.AudioContext || scope.webkitAudioContext)();
+}
+
 export const playWhooshSound = () => {
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = createAudioContext();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     oscillator.type = "sine";
@@ -15,7 +22,7 @@ export const playWhooshSound = () => {
 
 export const playExplosionSound = () => {
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = createAudioContext();
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     osc.type = "sawtooth";

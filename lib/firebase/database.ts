@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
-const firebaseConfig = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBSn_UrhUnWZdvU0WfaDUbPC8lviWFfRWA",
   authDomain: "share-5d4a0.firebaseapp.com",
   databaseURL: "https://share-5d4a0-default-rtdb.europe-west1.firebasedatabase.app",
@@ -9,8 +9,9 @@ const firebaseConfig = {
   storageBucket: "share-5d4a0.firebasestorage.app",
   messagingSenderId: "851824058701",
   appId: "1:851824058701:web:8e66692c9a9213f1229704",
-  measurementId: "G-7DNZJJZD69"
+  measurementId: "G-7DNZJJZD69",
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const db = getDatabase(app);
+const firebaseApp = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+
+export const db = getDatabase(firebaseApp);

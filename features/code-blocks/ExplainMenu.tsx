@@ -1,27 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { EXPLAIN_MODES } from "./explainModes";
+import type { ExplainMode } from "@/lib/types";
 
 interface Props {
-  onSelect: (mode: string) => void;
+  onSelect: (mode: ExplainMode) => void;
   isLoading: boolean;
 }
 
-const MODES = [
-  { id: "SYNTAX", label: "Check Syntax", tooltip: "Find syntax errors and suggested fixes" },
-  { id: "ADIB", label: "ADIB Mode", tooltip: "Simple Bangla explanation" },
-  { id: "FABIHA", label: "FABIHA Mode", tooltip: "Easy English explanation" },
-  { id: "MAHATAB", label: "MAHATAB Mode", tooltip: "Explain the thing shortly" },
-  { id: "MAHIN", label: "MAHIN Mode", tooltip: "Explain the easiest thing in detail" },
-];
-
-export default function ExplainDropdown({ onSelect, isLoading }: Props) {
+export default function ExplainMenu({ onSelect, isLoading }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -29,13 +23,13 @@ export default function ExplainDropdown({ onSelect, isLoading }: Props) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleModeSelect = (modeId: string) => {
-    onSelect(modeId);
+  const handleModeSelect = (mode: ExplainMode) => {
+    onSelect(mode);
     setIsOpen(false);
   };
 
   return (
-    <div ref={dropdownRef} className="relative inline-block">
+    <div ref={menuRef} className="relative inline-block">
       <button
         type="button"
         disabled={isLoading}
@@ -47,12 +41,12 @@ export default function ExplainDropdown({ onSelect, isLoading }: Props) {
 
       {!isLoading && isOpen && (
         <div className="absolute top-full left-0 mt-1 w-44 bg-surface border border-edge rounded-md shadow-2xl z-50 overflow-hidden">
-          {MODES.map((mode, idx) => (
+          {EXPLAIN_MODES.map((mode, index) => (
             <button
               key={mode.id}
               type="button"
               onClick={() => handleModeSelect(mode.id)}
-              className={`w-full text-left px-4 py-2.5 text-xs text-ink bg-surface hover:bg-accent hover:text-white transition-colors font-semibold cursor-pointer ${idx < MODES.length - 1 ? "border-b border-edge" : ""}`}
+              className={`w-full text-left px-4 py-2.5 text-xs text-ink bg-surface hover:bg-accent hover:text-white transition-colors font-semibold cursor-pointer ${index < EXPLAIN_MODES.length - 1 ? "border-b border-edge" : ""}`}
               title={mode.tooltip}
             >
               {mode.label}

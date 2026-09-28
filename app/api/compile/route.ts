@@ -1,19 +1,25 @@
-import { NextResponse } from 'next/server';
+const COMPILER_ENDPOINT = "https://api.onlinecompiler.io/api/run-code-sync/";
+const COMPILER_API_KEY = "08b221ed744154b9e7eff9c970dc86c0";
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const res = await fetch("https://api.onlinecompiler.io/api/run-code-sync/", {
+    const body = await request.json();
+
+    const response = await fetch(COMPILER_ENDPOINT, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": "08b221ed744154b9e7eff9c970dc86c0" 
+        Authorization: COMPILER_API_KEY,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (error: any) {
-    return NextResponse.json({ error: "Backend execution failed", details: error.message }, { status: 500 });
+
+    return Response.json(await response.json());
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return Response.json(
+      { error: "Backend execution failed", details: message },
+      { status: 500 },
+    );
   }
 }
