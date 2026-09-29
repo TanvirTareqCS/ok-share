@@ -1,18 +1,25 @@
 "use client";
 
-import { SpeakerIcon } from "@/components/icons/ActionIcons";
+import { useEffect, useRef } from "react";
+import { ReplyIcon, SpeakerIcon } from "@/components/icons/ActionIcons";
 import { speakText } from "@/lib/speech/tts";
 import RichText from "@/features/code-blocks/RichText";
 import GroupFileAttachment from "./GroupFileAttachment";
-import type { GroupMessage } from "@/lib/types";
+import type { GroupMessage, MessageReplyRef } from "@/lib/types";
 
 interface Props {
   message: GroupMessage;
   isOwn: boolean;
   channelKey: CryptoKey | null;
   isReadByEveryone: boolean;
+  isReplyTarget: boolean;
+  isHighlighted: boolean;
+  replyTo?: MessageReplyRef;
+  replyPreview?: string;
   onOpenCompiler: (code: string, language: string) => void;
   onDelete: () => void;
+  onReply: () => void;
+  onJumpToReply: () => void;
 }
 
 export default function GroupMessageItem({
@@ -20,11 +27,28 @@ export default function GroupMessageItem({
   isOwn,
   channelKey,
   isReadByEveryone,
+  isReplyTarget,
+  isHighlighted,
+  replyTo,
+  replyPreview,
   onOpenCompiler,
   onDelete,
+  onReply,
+  onJumpToReply,
 }: Props) {
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isHighlighted) return;
+    rowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [isHighlighted]);
+
   return (
-    <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
+    <div
+      ref={rowRef}
+      data-message-id={message.id}
+      className={`flex flex-col group/msg ${isOwn ? "items-end" : "items-start"}`}
+    >
       <div className="text-xs text-muted mb-1 flex items-center gap-1">
         <span>
           @{message.sender} -{" "}
@@ -53,8 +77,37 @@ export default function GroupMessageItem({
       </div>
 
       <div
-        className={`p-3 rounded-lg max-w-full lg:max-w-[85%] text-sm relative group border ${isOwn ? "bg-accent-soft border-accent/30 text-ink" : "bg-surface border-edge text-ink"}`}
+        className={`p-3 rounded-lg max-w-full lg:max-w-[85%] text-sm relative group border transition-shadow ${
+          isOwn ? "bg-accent-soft border-accent/30 text-ink" : "bg-surface border-edge text-ink"
+        } ${isReplyTarget ? "ring-1 ring-accent/50" : ""} ${
+          isHighlighted ? "animate-reply-flash" : ""
+        }`}
       >
+        <button
+          type="button"
+          onClick={onReply}
+          className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 transition-all shadow"
+          title="Reply to this message"
+        >
+          <ReplyIcon />
+        </button>
+
+        {replyTo && (
+          <button
+            type="button"
+            onClick={onJumpToReply}
+            className="w-full text-left mb-2 pl-2 border-l-2 border-accent/60 hover:border-accent transition-colors cursor-pointer"
+            title="Jump to the original message"
+          >
+            <span className="block text-[10px] font-mono font-bold uppercase tracking-wide text-accent">
+              Reply to @{replyTo.sender}
+            </span>
+            <span className="block text-xs text-muted truncate mt-0.5">
+              {replyPreview}
+            </span>
+          </button>
+        )}
+
         {!!message.text && (
           <div className="max-w-none">
             <RichText content={message.text ?? ""} onOpenCompiler={onOpenCompiler} />

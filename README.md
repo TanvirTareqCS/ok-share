@@ -17,6 +17,11 @@ Ephemeral, encrypted sharing for text, code, and group chats — built for frien
 - **E2E-encrypted channels** (optional) — set a channel passphrase and every message *and file* is encrypted before it's stored. The passphrase is shared out-of-band and never saved to the DB.
 - **WhatsApp-style read receipts** — `✓` sent, `✓✓` read by all members.
 - **Typing indicators** and **unread counts** on re-entry.
+- **Threaded replies** - hover any message and hit `↩` to reply to it. The composer shows a
+  dismissible "Replying to @who" bar, the sent message carries a clickable quote block, and
+  clicking that quote jumps to and flashes the original. Only the parent id and sender are stored
+  (already-plaintext metadata), so sealed channels leak nothing extra; the quoted text is read back
+  from the decrypted channel.
 
 ### 📎 File Sharing
 - Attach images, PDFs, documents, and source code to pastes and group messages — no Firebase Storage required, everything lives inline in the Realtime Database, so the free tier (no Blaze plan) handles it all.

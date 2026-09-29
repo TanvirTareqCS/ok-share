@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import GroupMessageItem from "./GroupMessageItem";
+import { REPLY_TARGET_MISSING, describeMessageForReply, truncateForPreview } from "@/lib/types";
 import type { GroupMessage } from "@/lib/types";
 
 interface Props {
   messages: GroupMessage[];
   username: string;
   channelKey: CryptoKey | null;
+  replyTargetId: string | null;
+  highlightedId: string | null;
   onOpenCompiler: (code: string, language: string) => void;
   onDeleteMessage: (messageId: string) => void;
+  onReply: (message: GroupMessage) => void;
+  onJumpToMessage: (messageId: string) => void;
   isReadByEveryone: (message: GroupMessage) => boolean;
 }
 
@@ -17,11 +22,21 @@ export default function GroupMessageList({
   messages,
   username,
   channelKey,
+  replyTargetId,
+  highlightedId,
   onOpenCompiler,
   onDeleteMessage,
+  onReply,
+  onJumpToMessage,
   isReadByEveryone,
 }: Props) {
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
+
+  const messagesById = useMemo(() => {
+    const lookup = new Map<string, GroupMessage>();
+    for (const message of messages) lookup.set(message.id, message);
+    return lookup;
+  }, [messages]);
 
   useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,17 +49,36 @@ export default function GroupMessageList({
           No messages in this workspace yet. Send the first update!
         </div>
       ) : (
-        messages.map((message) => (
-          <GroupMessageItem
-            key={message.id}
-            message={message}
-            isOwn={message.sender === username}
-            channelKey={channelKey}
-            isReadByEveryone={isReadByEveryone(message)}
-            onOpenCompiler={onOpenCompiler}
-            onDelete={() => onDeleteMessage(message.id)}
-          />
-        ))
+        messages.map((message) => {
+          const replyParent = message.replyTo ? messagesById.get(message.replyTo.id) : undefined;
+
+          return (
+            <GroupMessageItem
+              key={message.id}
+              message={message}
+              isOwn={message.sender === username}
+              channelKey={channelKey}
+              isReadByEveryone={isReadByEveryone(message)}
+              isReplyTarget={!!replyTargetId && replyTargetId === message.id}
+              isHighlighted={!!highlightedId && highlightedId === message.id}
+              replyTo={message.replyTo}
+              replyPreview={
+                message.replyTo
+                  ? truncateForPreview(
+                      replyParent ? describeMessageForReply(replyParent) : REPLY_TARGET_MISSING,
+                      90,
+                    )
+                  : undefined
+              }
+              onOpenCompiler={onOpenCompiler}
+              onDelete={() => onDeleteMessage(message.id)}
+              onReply={() => onReply(message)}
+              onJumpToReply={() => {
+                if (replyParent) onJumpToMessage(replyParent.id);
+              }}
+            />
+          );
+        })
       )}
       <div ref={scrollAnchorRef} />
     </div>

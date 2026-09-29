@@ -11,7 +11,8 @@ import { useGroupChannel } from "./useGroupChannel";
 import { useGroupMembership } from "./useGroupMembership";
 import { useGroupPresence } from "./useGroupPresence";
 import { useCallback, useState } from "react";
-import { isUndecryptable } from "@/lib/types";
+import { describeMessageForReply, isUndecryptable, truncateForPreview } from "@/lib/types";
+import type { GroupMessage, ReplyTarget } from "@/lib/types";
 
 interface Props {
   username: string;
@@ -34,8 +35,14 @@ export default function GroupWorkspace({
 }: Props) {
   const [manageOpen, setManageOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const handleGroupClosed = useCallback(() => setCurrentGroup(""), [setCurrentGroup]);
+  const handleGroupClosed = useCallback(() => {
+    setReplyTarget(null);
+    setHighlightedId(null);
+    setCurrentGroup("");
+  }, [setCurrentGroup]);
 
   const channel = useGroupChannel({
     username,
@@ -47,6 +54,8 @@ export default function GroupWorkspace({
     (groupName: string) => {
       setManageOpen(false);
       setPendingFile(null);
+      setReplyTarget(null);
+      setHighlightedId(null);
       setCurrentGroup(groupName);
     },
     [setCurrentGroup],
@@ -66,12 +75,35 @@ export default function GroupWorkspace({
     typingMap: channel.typingMap,
   });
 
+  const handleReply = useCallback((message: GroupMessage) => {
+    setHighlightedId(null);
+    setReplyTarget({
+      id: message.id,
+      sender: message.sender,
+      preview: truncateForPreview(describeMessageForReply(message)),
+    });
+  }, []);
+
+  const handleCancelReply = useCallback(() => setReplyTarget(null), []);
+
+  const handleJumpToMessage = useCallback((messageId: string) => {
+    setHighlightedId(messageId);
+    window.setTimeout(() => {
+      setHighlightedId((current) => (current === messageId ? null : current));
+    }, 1500);
+  }, []);
+
   const handleSend = async () => {
-    const isSent = await channel.sendMessage(newMessageText, pendingFile);
+    const isSent = await channel.sendMessage(
+      newMessageText,
+      pendingFile,
+      replyTarget ? { id: replyTarget.id, sender: replyTarget.sender } : null,
+    );
     if (!isSent) return;
 
     setNewMessageText("");
     setPendingFile(null);
+    setReplyTarget(null);
     presence.stopTyping();
   };
 
@@ -154,8 +186,12 @@ export default function GroupWorkspace({
         messages={channel.messages}
         username={username}
         channelKey={channel.channelKey}
+        replyTargetId={replyTarget?.id ?? null}
+        highlightedId={highlightedId}
         onOpenCompiler={onOpenCompiler}
         onDeleteMessage={channel.deleteMessage}
+        onReply={handleReply}
+        onJumpToMessage={handleJumpToMessage}
         isReadByEveryone={presence.hasReadByEveryone}
       />
 
@@ -165,6 +201,7 @@ export default function GroupWorkspace({
         isLocked={isLocked}
         canAttach={channel.isSealed && !!channel.channelKey}
         file={pendingFile}
+        replyTarget={replyTarget}
         onTextChange={(text) => {
           setNewMessageText(text);
           presence.notifyTyping();
@@ -174,6 +211,7 @@ export default function GroupWorkspace({
         onPickFile={setPendingFile}
         onClearFile={() => setPendingFile(null)}
         onStopTyping={presence.stopTyping}
+        onCancelReply={handleCancelReply}
       />
     </div>
   );

@@ -9,7 +9,7 @@ import { bufferToBase64, deriveChannelKey, openWithKey, sealWithKey, verifyChann
 import { classifyFileName, FILE_CAP_BYTES, sealBytesWithKey } from "@/lib/crypto/fileCipher";
 import type { SealedMessage } from "@/lib/crypto/secretCipher";
 import { UNDECRYPTABLE_MARKER } from "@/lib/types";
-import type { GroupMessage } from "@/lib/types";
+import type { GroupMessage, MessageReplyRef } from "@/lib/types";
 
 interface Args {
   username: string;
@@ -33,7 +33,7 @@ export interface GroupChannel {
   leaveGroup: () => Promise<void>;
   unlock: (passphrase: string) => Promise<boolean>;
   reenter: () => void;
-  sendMessage: (text: string, file?: File | null) => Promise<boolean>;
+  sendMessage: (text: string, file?: File | null, replyTo?: MessageReplyRef | null) => Promise<boolean>;
   deleteMessage: (messageId: string) => Promise<void>;
 }
 
@@ -241,7 +241,7 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
   }, [applyChannelKey, isSealed]);
 
   const sendMessage = useCallback(
-    async (rawText: string, file?: File | null) => {
+    async (rawText: string, file?: File | null, replyTo?: MessageReplyRef | null) => {
       const text = rawText.trim();
       if ((!text && !file) || !groupName) return false;
 
@@ -289,13 +289,21 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
             };
           }
 
+          if (replyTo) {
+            payload.replyTo = { id: replyTo.id, sender: replyTo.sender };
+          }
+
           await set(messageRef, payload);
         } else if (text) {
-          await push(ref(db, DB_PATHS.groupMessages(groupName)), {
+          const payload: Record<string, unknown> = {
             sender: username,
             text,
             timestamp: Date.now(),
-          });
+          };
+          if (replyTo) {
+            payload.replyTo = { id: replyTo.id, sender: replyTo.sender };
+          }
+          await push(ref(db, DB_PATHS.groupMessages(groupName)), payload);
         } else {
           return false;
         }

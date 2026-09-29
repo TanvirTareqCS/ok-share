@@ -17,6 +17,19 @@
   --color-code: var(--code-bg);
   --color-code-ink: var(--code-ink);
   --color-backdrop: var(--backdrop);
+  --animate-reply-flash: reply-flash 1.5s ease-out;
+}
+
+@keyframes reply-flash {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent);
+  }
+  60% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 /* Light theme (default) */

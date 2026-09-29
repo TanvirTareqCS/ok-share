@@ -40,6 +40,19 @@ export interface AttachmentDraft {
   file: File;
 }
 
+export const REPLY_TARGET_MISSING = "[original message unavailable]";
+
+/** Stored on a message so a reply can point at its parent. Plaintext-safe. */
+export interface MessageReplyRef {
+  id: string;
+  sender: string;
+}
+
+/** Local composer state for the message currently being replied to. */
+export interface ReplyTarget extends MessageReplyRef {
+  preview: string;
+}
+
 export interface GroupMessage {
   id: string;
   sender: string;
@@ -49,6 +62,18 @@ export interface GroupMessage {
   ciphertext?: string;
   iv?: string;
   attachment?: FileAttachment;
+  replyTo?: MessageReplyRef;
+}
+
+export function describeMessageForReply(message: GroupMessage): string {
+  if (message.text && !isUndecryptable(message)) return message.text;
+  if (message.attachment) return `📎 ${message.attachment.name}`;
+  return isUndecryptable(message) ? UNDECRYPTABLE_MARKER : REPLY_TARGET_MISSING;
+}
+
+export function truncateForPreview(value: string, maxLength = 120): string {
+  const collapsed = value.replace(/\s+/g, " ").trim();
+  return collapsed.length > maxLength ? `${collapsed.slice(0, maxLength - 1)}…` : collapsed;
 }
 
 export interface SharedSecret {
