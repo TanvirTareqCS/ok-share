@@ -93,8 +93,7 @@ export default function GroupMessageItem({
         <button
           type="button"
           onClick={onReply}
-          data-revealed={isRevealed}
-          className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center hover-reveal transition-all shadow"
+          className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center hover-reveal-pinned transition-all shadow"
           title="Reply to this message"
         >
           <ReplyIcon />
