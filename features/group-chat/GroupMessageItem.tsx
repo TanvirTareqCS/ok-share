@@ -86,7 +86,7 @@ export default function GroupMessageItem({
         <button
           type="button"
           onClick={onReply}
-          className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 transition-all shadow"
+          className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center hover-reveal transition-all shadow"
           title="Reply to this message"
         >
           <ReplyIcon />
@@ -119,7 +119,7 @@ export default function GroupMessageItem({
         {isOwn && (
           <button
             onClick={onDelete}
-            className="absolute -top-2 -right-2 bg-accent hover:bg-accent-hover text-white text-[10px] px-1.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow"
+            className="absolute -top-2 -right-2 bg-accent hover:bg-accent-hover text-white text-[10px] px-1.5 py-0.5 rounded-full hover-reveal transition-opacity shadow"
             title="Delete message"
           >
             ✕
