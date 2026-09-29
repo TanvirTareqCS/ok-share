@@ -8,7 +8,6 @@ interface Props {
   isAdmin: boolean;
   manageOpen: boolean;
   onToggleManage: () => void;
-  typingUsers: string[];
   unreadCount: number;
   onLeave: () => void;
 }
@@ -21,7 +20,6 @@ export default function GroupHeader({
   isAdmin,
   manageOpen,
   onToggleManage,
-  typingUsers,
   unreadCount,
   onLeave,
 }: Props) {
@@ -35,9 +33,6 @@ export default function GroupHeader({
           </span>
         )}
         <span className="text-muted text-xs truncate">Members: {members.join(", ") || "none"}</span>
-        {typingUsers.length > 0 && (
-          <span className="text-ok text-xs animate-pulse">✍ {typingUsers.join(", ")} typing…</span>
-        )}
         {unreadCount > 0 && <span className="text-accent text-xs font-bold">● {unreadCount} new</span>}
       </div>
       <div className="flex items-center gap-3 self-start sm:self-auto">

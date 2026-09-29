@@ -9,6 +9,7 @@ interface Props {
   messages: GroupMessage[];
   username: string;
   channelKey: CryptoKey | null;
+  typingUsers: string[];
   replyTargetId: string | null;
   highlightedId: string | null;
   onOpenCompiler: (code: string, language: string) => void;
@@ -18,10 +19,17 @@ interface Props {
   isReadByEveryone: (message: GroupMessage) => boolean;
 }
 
+function formatTypingLabel(typingUsers: string[]): string {
+  if (typingUsers.length === 1) return `@${typingUsers[0]} is typing…`;
+  if (typingUsers.length === 2) return `@${typingUsers[0]} and @${typingUsers[1]} are typing…`;
+  return `${typingUsers.length} people are typing…`;
+}
+
 export default function GroupMessageList({
   messages,
   username,
   channelKey,
+  typingUsers,
   replyTargetId,
   highlightedId,
   onOpenCompiler,
@@ -40,7 +48,7 @@ export default function GroupMessageList({
 
   useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, typingUsers]);
 
   return (
     <div className="h-[55vh] md:h-[520px] bg-surface2/60 border border-edge rounded-lg p-4 overflow-y-auto space-y-3">
@@ -79,6 +87,20 @@ export default function GroupMessageList({
             />
           );
         })
+      )}
+      {typingUsers.length > 0 && (
+        <div className="flex items-center gap-2 pt-0.5" role="status" aria-live="polite">
+          <span className="flex shrink-0 items-center gap-1 rounded-lg border border-edge bg-surface px-3 py-2.5">
+            {[0, 1, 2].map((dot) => (
+              <span
+                key={dot}
+                className="h-1.5 w-1.5 rounded-full bg-muted animate-typing-dot"
+                style={{ animationDelay: `${dot * 140}ms` }}
+              />
+            ))}
+          </span>
+          <span className="truncate text-xs text-muted">{formatTypingLabel(typingUsers)}</span>
+        </div>
       )}
       <div ref={scrollAnchorRef} />
     </div>

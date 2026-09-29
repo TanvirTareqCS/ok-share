@@ -142,7 +142,6 @@ export default function GroupWorkspace({
         isAdmin={channel.isAdmin}
         manageOpen={manageOpen}
         onToggleManage={() => setManageOpen((open) => !open)}
-        typingUsers={presence.typingUsers}
         unreadCount={presence.unreadCount}
         onLeave={handleLeave}
       />
@@ -186,6 +185,7 @@ export default function GroupWorkspace({
         messages={channel.messages}
         username={username}
         channelKey={channel.channelKey}
+        typingUsers={presence.typingUsers}
         replyTargetId={replyTarget?.id ?? null}
         highlightedId={highlightedId}
         onOpenCompiler={onOpenCompiler}
