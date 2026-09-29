@@ -151,23 +151,27 @@ button {
 
   /*
    * Hover-revealed action buttons (reply, delete).
-   * Touch devices have no hover, so the button stays permanently visible there.
-   * Pointer devices get the hover/focus reveal. Written as one utility because
-   * Tailwind's variant order puts every `*:opacity-0` variant after
-   * `group-hover:opacity-100`, which would kill the reveal.
+   * Pointer devices get the hover/focus reveal. Touch devices have no hover, so
+   * they stay hidden until the row is long-pressed, which sets
+   * `data-revealed`. Written as one utility because Tailwind's variant order
+   * puts every `*:opacity-0` variant after `group-hover:opacity-100`, which
+   * would kill the reveal.
    */
   .hover-reveal {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hover-reveal[data-revealed="true"] {
     opacity: 1;
+    pointer-events: auto;
   }
   @media (hover: hover) {
-    .hover-reveal {
-      opacity: 0;
-    }
     .group:hover .hover-reveal,
     .group\/msg:hover .hover-reveal,
     .group:focus-within .hover-reveal,
     .group\/msg:focus-within .hover-reveal {
       opacity: 1;
+      pointer-events: auto;
     }
   }
 }

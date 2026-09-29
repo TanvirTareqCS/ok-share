@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { ReplyIcon, SpeakerIcon } from "@/components/icons/ActionIcons";
+import { useLongPress } from "@/lib/useLongPress";
 import { speakText } from "@/lib/speech/tts";
 import RichText from "@/features/code-blocks/RichText";
 import GroupFileAttachment from "./GroupFileAttachment";
@@ -14,11 +15,13 @@ interface Props {
   isReadByEveryone: boolean;
   isReplyTarget: boolean;
   isHighlighted: boolean;
+  isRevealed: boolean;
   replyTo?: MessageReplyRef;
   replyPreview?: string;
   onOpenCompiler: (code: string, language: string) => void;
   onDelete: () => void;
   onReply: () => void;
+  onReveal: () => void;
   onJumpToReply: () => void;
 }
 
@@ -29,14 +32,17 @@ export default function GroupMessageItem({
   isReadByEveryone,
   isReplyTarget,
   isHighlighted,
+  isRevealed,
   replyTo,
   replyPreview,
   onOpenCompiler,
   onDelete,
   onReply,
+  onReveal,
   onJumpToReply,
 }: Props) {
   const rowRef = useRef<HTMLDivElement>(null);
+  const longPress = useLongPress({ onLongPress: onReveal });
 
   useEffect(() => {
     if (!isHighlighted) return;
@@ -77,6 +83,7 @@ export default function GroupMessageItem({
       </div>
 
       <div
+        {...longPress}
         className={`p-3 rounded-lg max-w-full lg:max-w-[85%] text-sm relative group border transition-shadow ${
           isOwn ? "bg-accent-soft border-accent/30 text-ink" : "bg-surface border-edge text-ink"
         } ${isReplyTarget ? "ring-1 ring-accent/50" : ""} ${
@@ -86,6 +93,7 @@ export default function GroupMessageItem({
         <button
           type="button"
           onClick={onReply}
+          data-revealed={isRevealed}
           className="absolute -top-2 -left-2 bg-surface hover:bg-accent hover:text-white text-muted border border-edge hover:border-accent rounded-full w-5 h-5 flex items-center justify-center hover-reveal transition-all shadow"
           title="Reply to this message"
         >
@@ -119,6 +127,7 @@ export default function GroupMessageItem({
         {isOwn && (
           <button
             onClick={onDelete}
+            data-revealed={isRevealed}
             className="absolute -top-2 -right-2 bg-accent hover:bg-accent-hover text-white text-[10px] px-1.5 py-0.5 rounded-full hover-reveal transition-opacity shadow"
             title="Delete message"
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import GroupMessageItem from "./GroupMessageItem";
 import { REPLY_TARGET_MISSING, describeMessageForReply, truncateForPreview } from "@/lib/types";
 import type { GroupMessage } from "@/lib/types";
@@ -39,6 +39,27 @@ export default function GroupMessageList({
   isReadByEveryone,
 }: Props) {
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const [revealedId, setRevealedId] = useState<string | null>(null);
+
+  const hideRevealed = () => setRevealedId(null);
+
+  useEffect(() => {
+    if (!revealedId) return;
+    const timer = setTimeout(hideRevealed, 4000);
+    return () => clearTimeout(timer);
+  }, [revealedId]);
+
+  useEffect(() => {
+    if (!revealedId) return;
+    const onDocClick = (event: MouseEvent) => {
+      const row = (event.target as Element | null)?.closest?.("[data-message-id]");
+      if (!(row instanceof HTMLElement) || row.dataset.messageId !== revealedId) {
+        setRevealedId(null);
+      }
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [revealedId]);
 
   const messagesById = useMemo(() => {
     const lookup = new Map<string, GroupMessage>();
@@ -51,7 +72,10 @@ export default function GroupMessageList({
   }, [messages, typingUsers]);
 
   return (
-    <div className="h-[55vh] md:h-[520px] bg-surface2/60 border border-edge rounded-lg p-4 overflow-y-auto space-y-3">
+    <div
+      className="h-[55vh] md:h-[520px] bg-surface2/60 border border-edge rounded-lg p-4 overflow-y-auto space-y-3"
+      onScroll={hideRevealed}
+    >
       {messages.length === 0 ? (
         <div className="text-center text-muted pt-24 text-sm">
           No messages in this workspace yet. Send the first update!
@@ -69,6 +93,7 @@ export default function GroupMessageList({
               isReadByEveryone={isReadByEveryone(message)}
               isReplyTarget={!!replyTargetId && replyTargetId === message.id}
               isHighlighted={!!highlightedId && highlightedId === message.id}
+              isRevealed={revealedId === message.id}
               replyTo={message.replyTo}
               replyPreview={
                 message.replyTo
@@ -81,6 +106,7 @@ export default function GroupMessageList({
               onOpenCompiler={onOpenCompiler}
               onDelete={() => onDeleteMessage(message.id)}
               onReply={() => onReply(message)}
+              onReveal={() => setRevealedId(message.id)}
               onJumpToReply={() => {
                 if (replyParent) onJumpToMessage(replyParent.id);
               }}
