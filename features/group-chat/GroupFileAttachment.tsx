@@ -14,6 +14,7 @@ export default function GroupFileAttachment({ attachment, channelKey }: Props) {
       kind={attachment.kind}
       name={attachment.name}
       size={attachment.size}
+      data={attachment.data}
       iv={attachment.iv}
       ciphertext={attachment.ciphertext}
       channelKey={channelKey}

@@ -108,7 +108,7 @@ export default function GroupComposer({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={!canAttach}
-          title={canAttach ? "Attach a file" : "Seal the channel to share files"}
+          title={canAttach ? "Attach a file" : "Unlock the channel to share files"}
           className="h-[48px] w-12 shrink-0 bg-surface2 hover:bg-edge text-ink border border-edge rounded-lg transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <PaperclipIcon />

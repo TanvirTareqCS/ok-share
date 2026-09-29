@@ -250,15 +250,9 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
         return false;
       }
 
-      if (file) {
-        if (!isSealed) {
-          alert("Seal the channel to share files.");
-          return false;
-        }
-        if (file.size > FILE_CAP_BYTES) {
-          alert(`"${file.name}" exceeds the 5 MB file limit.`);
-          return false;
-        }
+      if (file && file.size > FILE_CAP_BYTES) {
+        alert(`"${file.name}" exceeds the 5 MB file limit.`);
+        return false;
       }
 
       setIsSending(true);
@@ -294,18 +288,26 @@ export function useGroupChannel({ username, groupName, onGroupClosed }: Args): G
           }
 
           await set(messageRef, payload);
-        } else if (text) {
+        } else {
           const payload: Record<string, unknown> = {
             sender: username,
-            text,
             timestamp: Date.now(),
           };
+          if (text) {
+            payload.text = text;
+          }
+          if (file) {
+            payload.attachment = {
+              name: file.name,
+              size: file.size,
+              kind: classifyFileName(file.name),
+              data: bufferToBase64(await file.arrayBuffer()),
+            };
+          }
           if (replyTo) {
             payload.replyTo = { id: replyTo.id, sender: replyTo.sender };
           }
           await push(ref(db, DB_PATHS.groupMessages(groupName)), payload);
-        } else {
-          return false;
         }
 
         return true;

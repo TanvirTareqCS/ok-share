@@ -26,7 +26,7 @@ Ephemeral, encrypted sharing for text, code, and group chats — built for frien
 ### 📎 File Sharing
 - Attach images, PDFs, documents, and source code to pastes and group messages — no Firebase Storage required, everything lives inline in the Realtime Database, so the free tier (no Blaze plan) handles it all.
 - **Images preview inline** (with a click-to-enlarge full-screen view), PDFs and text/code open in a big-screen viewer from a tidy file chip; everything can be downloaded.
-- **No passcode?** Files are stored openly as bytes so the link works with zero friction. **Passcode on?** Every file is sealed with the same passcode-derived key as the text. **Sealed group channel?** Files are sealed with the channel key.
+- **No passcode?** Files are stored openly as bytes so the link works with zero friction. **Passcode on?** Every file is sealed with the same passcode-derived key as the text. **Sealed group channel?** Files are sealed with the channel key. **Open group channel?** Files are stored openly, same as an unsealed paste.
 - Client-side limits keep payloads inside RTDB's size ceiling: **up to 5 MB per file, 8 MB total per share**. Images over 5 MB are **auto-compressed in the browser** (Canvas → JPEG) instead of being rejected.
 
 ### 🤖 AI Code Tools (Groq)

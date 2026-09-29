@@ -12,8 +12,9 @@ export interface FileAttachment {
   name: string;
   size: number;
   kind: FileKind;
-  iv: string;
-  ciphertext: string;
+  data?: string;
+  iv?: string;
+  ciphertext?: string;
 }
 
 export interface SharedFile {

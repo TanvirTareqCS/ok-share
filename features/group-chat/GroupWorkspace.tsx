@@ -199,7 +199,7 @@ export default function GroupWorkspace({
         text={newMessageText}
         isSending={channel.isSending}
         isLocked={isLocked}
-        canAttach={channel.isSealed && !!channel.channelKey}
+        canAttach={!isLocked}
         file={pendingFile}
         replyTarget={replyTarget}
         onTextChange={(text) => {
