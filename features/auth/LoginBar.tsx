@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { STORAGE_KEYS } from "@/lib/storage/localKeys";
+import { STORAGE_KEYS, clearGroupPassphrases } from "@/lib/storage/localKeys";
 import { confirmLogout, registerUsername, removeUserAndGroups, stripHandlePrefix } from "./authService";
 
 interface Props {
@@ -28,13 +28,16 @@ export default function LoginBar({ username, onLogin, onLogout }: Props) {
   const handleLogout = async () => {
     if (!confirmLogout()) return;
 
-    if (username) {
-      await removeUserAndGroups(username);
+    try {
+      if (username) {
+        await removeUserAndGroups(username);
+      }
+    } finally {
+      clearGroupPassphrases();
+      localStorage.removeItem(STORAGE_KEYS.username);
+      localStorage.removeItem(STORAGE_KEYS.activeGroup);
+      onLogout();
     }
-
-    localStorage.removeItem(STORAGE_KEYS.username);
-    localStorage.removeItem(STORAGE_KEYS.activeGroup);
-    onLogout();
   };
 
   if (username) {

@@ -53,8 +53,12 @@ export function useWorkspaceSession(): WorkspaceSession {
   };
 
   const logout = () => {
+    setUsername("");
     setCurrentGroup("");
     setActiveTab("pastebin");
+    setPastebinText("");
+    setChatText("");
+    setRequirePasscode(false);
   };
 
   return {
